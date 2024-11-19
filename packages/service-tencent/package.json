@@ -1,5 +1,5 @@
 {
-  "name": "@opentranslate/tencent",
+  "name": "@opentranslate2/tencent",
   "private": false,
   "publishConfig": {
     "access": "public"
