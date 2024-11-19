@@ -1,5 +1,5 @@
 {
-  "name": "@opentranslate/caiyun",
+  "name": "@opentranslate2/caiyun",
   "private": false,
   "publishConfig": {
     "access": "public"
