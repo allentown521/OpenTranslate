@@ -18,12 +18,12 @@
     "translator"
   ],
   "repository": "OpenTranslate/OpenTranslate",
-  "homepage": "https://github.com/OpenTranslate/OpenTranslate/tree/master/packages/service-caiyun",
-  "bugs": "https://github.com/opentranslate/opentranslate/issues/",
+  "homepage": "https://github.com/allentown521/OpenTranslate/tree/master/packages/service-caiyun",
+  "bugs": "https://github.com/allentown521/opentranslate/issues/",
   "author": "OpenTranslate",
   "license": "MIT",
   "dependencies": {
-    "@opentranslate/translator": "^1.4.2",
+    "@opentranslate2/translator": "^1.4.2",
     "@types/node": "^12.11.7",
     "@types/qs": "^6.5.3",
     "qs": "^6.8.0"
