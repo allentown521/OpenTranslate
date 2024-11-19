@@ -1,5 +1,5 @@
 {
-  "name": "@opentranslate/baidu",
+  "name": "@opentranslate2/baidu",
   "private": false,
   "publishConfig": {
     "access": "public"
