@@ -1,5 +1,5 @@
 {
-  "name": "@opentranslate/languages",
+  "name": "@opentranslate2/languages",
   "private": false,
   "publishConfig": {
     "access": "public"
@@ -25,8 +25,8 @@
     "dictionary"
   ],
   "repository": "OpenTranslate/OpenTranslate",
-  "homepage": "https://github.com/OpenTranslate/OpenTranslate/tree/master/packages/languages",
-  "bugs": "https://github.com/opentranslate/opentranslate/issues/",
+  "homepage": "https://github.com/allentown521/OpenTranslate/tree/master/packages/languages",
+  "bugs": "https://github.com/allentown521/opentranslate/issues/",
   "author": "OpenTranslate",
   "license": "MIT"
 }
