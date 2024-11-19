@@ -10,7 +10,7 @@ Building blocks for bridging translation services with unified interface.
 ```bash
 git clone git@github.com:OpenTranslate/OpenTranslate.git
 cd OpenTranslate
-yarn
+yarn install --insecure
 yarn build
 ```
 
