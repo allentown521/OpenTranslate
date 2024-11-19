@@ -18,12 +18,12 @@
     "translator"
   ],
   "repository": "OpenTranslate/OpenTranslate",
-  "homepage": "https://github.com/OpenTranslate/OpenTranslate/tree/master/packages/translator",
+  "homepage": "https://github.com/allentown521/OpenTranslate/tree/master/packages/translator",
   "bugs": "https://github.com/opentranslate/opentranslate/issues/",
   "author": "OpenTranslate",
   "license": "MIT",
   "dependencies": {
-    "@opentranslate/languages": "^1.4.2",
+    "@opentranslate2/languages": "^1.4.2",
     "axios": "^0.19.0",
     "franc-min": "^4.1.0"
   }
