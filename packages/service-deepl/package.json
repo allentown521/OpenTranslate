@@ -1,5 +1,5 @@
 {
-  "name": "@opentranslate/deepl",
+  "name": "@opentranslate2/deepl",
   "private": false,
   "publishConfig": {
     "access": "public"
