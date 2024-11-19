@@ -5,7 +5,7 @@ import {
   TranslateResult,
   TranslateQueryResult
 } from "./type";
-import { Language } from "@opentranslate/languages";
+import { Language } from "@opentranslate2/languages";
 import Axios, { AxiosInstance, AxiosRequestConfig, AxiosPromise } from "axios";
 import { detectLang } from "./detect-lang";
 

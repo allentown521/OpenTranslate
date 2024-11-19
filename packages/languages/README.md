@@ -1,6 +1,6 @@
-# @opentranslate/languages
+# @opentranslate2/languages
 
-[![npm-version](https://img.shields.io/npm/v/@opentranslate/languages.svg)](https://www.npmjs.com/package/@opentranslate/languages)
+[![npm-version](https://img.shields.io/npm/v/@opentranslate2/languages.svg)](https://www.npmjs.com/package/@opentranslate2/languages)
 [![OpenTranslate](https://img.shields.io/badge/OpenTranslate-Compatible-brightgreen)](https://github.com/OpenTranslate)
 
 Shared language identifiers and locales for [OpenTranslate](https://github.com/OpenTranslate) projects.
@@ -12,13 +12,13 @@ Shared language identifiers and locales for [OpenTranslate](https://github.com/O
 Yarn
 
 ```
-yarn add @opentranslate/languages
+yarn add @opentranslate2/languages
 ```
 
 NPM
 
 ```
-npm i @opentranslate/languages
+npm i @opentranslate2/languages
 ```
 
 ### Import
@@ -26,19 +26,19 @@ npm i @opentranslate/languages
 CommonJS
 
 ```js
-const { languages } = require("@opentranslate/languages");
-const en = require("@opentranslate/languages/locales/en");
-const zhCN = require("@opentranslate/languages/locales/zh-CN");
-const zhTW = require("@opentranslate/languages/locales/zh-TW");
+const { languages } = require("@opentranslate2/languages");
+const en = require("@opentranslate2/languages/locales/en");
+const zhCN = require("@opentranslate2/languages/locales/zh-CN");
+const zhTW = require("@opentranslate2/languages/locales/zh-TW");
 ```
 
 TypeScript (with `resolveJsonModule` enabled)
 
 ```ts
-import { languages } from "@opentranslate/languages";
-import en from "@opentranslate/languages/locales/en.json";
-import zhCN from "@opentranslate/languages/locales/zh-CN.json";
-import zhTW from "@opentranslate/languages/locales/zh-TW.json";
+import { languages } from "@opentranslate2/languages";
+import en from "@opentranslate2/languages/locales/en.json";
+import zhCN from "@opentranslate2/languages/locales/zh-CN.json";
+import zhTW from "@opentranslate2/languages/locales/zh-TW.json";
 ```
 
 ### API

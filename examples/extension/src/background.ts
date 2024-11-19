@@ -1,4 +1,4 @@
-import { Translator, TranslatorInit } from "@opentranslate/translator";
+import { Translator, TranslatorInit } from "@opentranslate2/translator";
 
 const env = require("../env.json");
 

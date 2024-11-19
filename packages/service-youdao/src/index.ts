@@ -3,7 +3,7 @@ import {
   Translator,
   TranslateQueryResult,
   TranslateError
-} from "@opentranslate/translator";
+} from "@opentranslate2/translator";
 import { sha256 } from "js-sha256";
 import qs from "qs";
 

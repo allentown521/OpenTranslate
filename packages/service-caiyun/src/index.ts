@@ -4,7 +4,7 @@ import {
   Translator,
   TranslateQueryResult,
   TranslateError
-} from "@opentranslate/translator";
+} from "@opentranslate2/translator";
 import qs from "qs";
 
 type CaiyunTranslateResult = {

@@ -3,7 +3,7 @@ import {
   Language,
   Translator,
   TranslateQueryResult
-} from "@opentranslate/translator";
+} from "@opentranslate2/translator";
 import SHA256 from "crypto-js/sha256";
 import HMACSHA256 from "crypto-js/hmac-sha256";
 import EncHEX from "crypto-js/enc-hex";

@@ -2,7 +2,7 @@ import {
   Language,
   Translator,
   TranslateQueryResult
-} from "@opentranslate/translator";
+} from "@opentranslate2/translator";
 import { getTK, fetchScheduled } from "./api";
 import qs from "qs";
 

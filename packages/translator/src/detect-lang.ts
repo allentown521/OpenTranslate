@@ -1,4 +1,4 @@
-import { Language } from "@opentranslate/languages";
+import { Language } from "@opentranslate2/languages";
 import franc from "franc-min";
 
 // improve accuracy but narrowing down language set

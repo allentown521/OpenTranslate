@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import ReactDOM from "react-dom";
-import en from "@opentranslate/languages/locales/en.json";
-import zhCN from "@opentranslate/languages/locales/zh-CN.json";
-import zhTW from "@opentranslate/languages/locales/zh-TW.json";
-import { TranslateResult, Language } from "@opentranslate/translator";
+import en from "@opentranslate2/languages/locales/en.json";
+import zhCN from "@opentranslate2/languages/locales/zh-CN.json";
+import zhTW from "@opentranslate2/languages/locales/zh-TW.json";
+import { TranslateResult, Language } from "@opentranslate2/translator";
 
 import "@fortawesome/fontawesome-free/css/all.css";
 import "bulma/css/bulma.css";
