@@ -1,5 +1,5 @@
 {
-  "name": "@opentranslate/sogou",
+  "name": "@opentranslate2/sogou",
   "private": false,
   "publishConfig": {
     "access": "public"
