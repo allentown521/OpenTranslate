@@ -18,12 +18,12 @@
     "translator"
   ],
   "repository": "OpenTranslate/OpenTranslate",
-  "homepage": "https://github.com/OpenTranslate/OpenTranslate/tree/master/packages/service-google",
-  "bugs": "https://github.com/opentranslate/opentranslate/issues/",
+  "homepage": "https://github.com/allentown521/OpenTranslate/tree/master/packages/service-google",
+  "bugs": "https://github.com/allentown521/opentranslate/issues/",
   "author": "OpenTranslate",
   "license": "MIT",
   "dependencies": {
-    "@opentranslate/translator": "^1.4.2",
+    "@opentranslate2/translator": "^1.4.2",
     "google-translate-open-api": "^1.3.4"
   }
 }
