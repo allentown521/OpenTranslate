@@ -1,5 +1,5 @@
 {
-  "name": "@opentranslate/translator",
+  "name": "@opentranslate2/translator",
   "private": false,
   "publishConfig": {
     "access": "public"
