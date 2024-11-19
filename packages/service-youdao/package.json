@@ -1,5 +1,5 @@
 {
-  "name": "@opentranslate/youdao",
+  "name": "@opentranslate2/youdao",
   "private": false,
   "publishConfig": {
     "access": "public"
