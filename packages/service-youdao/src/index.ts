@@ -115,10 +115,12 @@ export class Youdao extends Translator<YoudaoConfig> {
     const voiceLang = standard2custom[lang];
     if (!voiceLang) return null;
 
+    // you better use official api or offical tts url returned by translator result
     return (
-      "http://tts.youdao.com/fanyivoice?" +
+      "https://dict.youdao.com/dictvoice?" +
       qs.stringify({
-        word: text,
+        audio: text,
+        type: 0,
         le: voiceLang,
         keyfrom: "speaker-target"
       })
