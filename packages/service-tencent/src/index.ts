@@ -117,7 +117,8 @@ export class Tencent extends Translator<TencentConfig> {
     version: string;
   }): AxiosPromise<R> {
     const host = `${service}.tencentcloudapi.com`;
-    this.stubHeaders(host);
+    // seems not necessary and not allowed in content script(only in service worker)
+    // this.stubHeaders(host);
 
     const now = new Date();
     const timestamp = `${new Date().valueOf()}`.slice(0, 10);
