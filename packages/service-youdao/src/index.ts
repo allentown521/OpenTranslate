@@ -61,7 +61,7 @@ export class Youdao extends Translator<YoudaoConfig> {
     const str1 = config.appKey + truncate(text) + salt + curTime + config.key;
     const sign = sha256(str1);
     const res = await this.request<YoudaoTranslateResult>(
-      "http://openapi.youdao.com/api",
+      "https://openapi.youdao.com/api",
       {
         method: "post",
         data: qs.stringify({
