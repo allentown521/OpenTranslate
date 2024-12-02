@@ -5,6 +5,7 @@ import {
   TranslateError
 } from "@opentranslate2/translator";
 import qs from "qs";
+import axios from "axios";
 
 const langMap: [Language, string][] = [
   ["auto", ""],
@@ -107,7 +108,21 @@ export class Deepl extends Translator<DeeplConfig> {
           ["target_lang"]: Deepl.langMap.get(to)
         })
       }
-    ).catch(() => {});
+    ).catch(error => {
+      // https://developers.deepl.com/docs/api-reference/translate/openapi-spec-for-text-translation
+      if (error && error.response && error.response.status) {
+        switch (error.response.status) {
+          case 403:
+            throw new TranslateError("AUTH_ERROR");
+          case 456: // never happen now , need to check
+            throw new TranslateError("USEAGE_LIMIT");
+          default:
+            throw new TranslateError("UNKNOWN");
+        }
+      } else {
+        throw new TranslateError("UNKNOWN");
+      }
+    });
 
     if (!response || !response.data) {
       throw new TranslateError("NETWORK_ERROR");

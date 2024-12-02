@@ -92,11 +92,19 @@ export class Baidu extends Translator<BaiduConfig> {
 
     const { data } = res;
 
-    if ((data as BaiduTranslateError).error_code) {
-      console.error(
-        new Error("[Baidu service]" + (data as BaiduTranslateError).error_msg)
-      );
-      throw new TranslateError("API_SERVER_ERROR");
+    const error = (data as BaiduTranslateError).error_code;
+    if (error) {
+      // https://api.fanyi.baidu.com/api/trans/product/apidoc#joinFile
+      console.error(new Error("[Baidu service]" + error));
+      switch (error) {
+        case "52003":
+        case "54000":
+          throw new TranslateError("AUTH_ERROR");
+        case "54004":
+          throw new TranslateError("USEAGE_LIMIT");
+        default:
+          throw new TranslateError("UNKNOWN");
+      }
     }
 
     const {
@@ -137,9 +145,9 @@ export class Baidu extends Translator<BaiduConfig> {
     return `https://fanyi.baidu.com/gettts?${qs.stringify({
       lan: Baidu.langMap.get(lang !== "auto" ? lang : "zh-CN") || "zh",
       text,
-      spd: 5,
+      spd: 5
     })}`;
-  }  
+  }
 }
 
 export default Baidu;

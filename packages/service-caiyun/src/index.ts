@@ -6,6 +6,7 @@ import {
   TranslateError
 } from "@opentranslate2/translator";
 import qs from "qs";
+import axios from "axios";
 
 type CaiyunTranslateResult = {
   confidence: number;
@@ -43,10 +44,9 @@ export class Caiyun extends Translator<CaiyunConfig> {
     return `https://fanyi.baidu.com/gettts?${qs.stringify({
       lan: Caiyun.langMap.get(lang !== "auto" ? lang : "zh-CN") || "zh",
       text,
-      spd: 5,
+      spd: 5
     })}`;
   }
-  
 
   protected async query(
     text: string,
@@ -70,10 +70,22 @@ export class Caiyun extends Translator<CaiyunConfig> {
           detect
         })
       }
-    ).catch(() => {});
-    if (!response || !response.data) {
-      throw new TranslateError("NETWORK_ERROR");
-    }
+    ).catch(error => {
+      // https://api.interpreter.caiyunai.com/v1/translator
+      if (error && error.response && error.response.status) {
+        switch (error.response.status) {
+          case 401:
+            throw new TranslateError("AUTH_ERROR");
+          case 500: // never happen now , need to check
+            throw new TranslateError("USEAGE_LIMIT");
+          default:
+            throw new TranslateError("UNKNOWN");
+        }
+      } else {
+        throw new TranslateError("UNKNOWN");
+      }
+    });
+
     const result = response.data;
     return {
       text: text,

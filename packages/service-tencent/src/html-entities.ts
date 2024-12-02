@@ -1,4 +1,5 @@
-export function decodeHTMLEntities(text: string): string {
+export function decodeHTMLEntities(text?: string): string {
+  if (!text) return "";
   return text.replace(/&([^;]+);/gm, (match, entity) => {
     switch (entity) {
       case "amp":

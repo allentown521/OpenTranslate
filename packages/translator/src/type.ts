@@ -16,6 +16,8 @@ export type TranslateErrorType =
   | "NETWORK_TIMEOUT"
   | "API_SERVER_ERROR"
   | "UNSUPPORTED_LANG"
+  | "USEAGE_LIMIT"
+  | "AUTH_ERROR"
   | "UNKNOWN";
 
 export class TranslateError extends Error {

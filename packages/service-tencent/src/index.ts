@@ -2,7 +2,8 @@
 import {
   Language,
   Translator,
-  TranslateQueryResult
+  TranslateQueryResult,
+  TranslateError
 } from "@opentranslate2/translator";
 import SHA256 from "crypto-js/sha256";
 import HMACSHA256 from "crypto-js/hmac-sha256";
@@ -187,6 +188,9 @@ export class Tencent extends Translator<TencentConfig> {
         Source: string;
         Target: string;
         RequestId: string;
+        Error: {
+          Code: string;
+        };
       };
     }>({
       secretId: config.secretId,
@@ -195,7 +199,24 @@ export class Tencent extends Translator<TencentConfig> {
       payload: RequestPayload,
       service: "tmt",
       version: "2018-03-21"
+    }).catch(() => {
+      throw new TranslateError("NETWORK_ERROR");
     });
+
+    // https://cloud.tencent.com/document/product/551/14403
+    if (data.Response.Error && data.Response.Error.Code) {
+      switch (data.Response.Error.Code) {
+        case "AuthFailure.SecretIdNotFound":
+        case "AuthFailure.InvalidSecretId":
+          throw new TranslateError("AUTH_ERROR");
+        case "FailedOperation.NoFreeAmount":
+        case "FailedOperation.UserHasNoFreeAmount":
+        case "FailedOperation.ServiceIsolate":
+          throw new TranslateError("USEAGE_LIMIT");
+        default:
+          throw new TranslateError("UNKNOWN");
+      }
+    }
 
     return {
       text: text,

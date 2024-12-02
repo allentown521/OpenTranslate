@@ -71,14 +71,19 @@ export class BaiduDomain extends Translator<BaiduDomainConfig> {
 
     const { data } = res;
 
-    if ((data as BaiduDomainTranslateError).error_code) {
-      console.error(
-        new Error(
-          "[BaiduDomain service]" +
-            (data as BaiduDomainTranslateError).error_msg
-        )
-      );
-      throw new TranslateError("API_SERVER_ERROR");
+    const error = (data as BaiduDomainTranslateError).error_code;
+    if (error) {
+      // https://api.fanyi.baidu.com/api/trans/product/apidoc#joinFile
+      console.error(new Error("[BaiduDomain service]" + error));
+      switch (error) {
+        case "52003":
+        case "54000":
+          throw new TranslateError("AUTH_ERROR");
+        case "54004":
+          throw new TranslateError("USEAGE_LIMIT");
+        default:
+          throw new TranslateError("UNKNOWN");
+      }
     }
 
     const {
@@ -121,9 +126,9 @@ export class BaiduDomain extends Translator<BaiduDomainConfig> {
     return `https://fanyi.baidu.com/gettts?${qs.stringify({
       lan: BaiduDomain.langMap.get(lang !== "auto" ? lang : "zh-CN") || "zh",
       text,
-      spd: 5,
+      spd: 5
     })}`;
-  }  
+  }
 }
 
 export default BaiduDomain;

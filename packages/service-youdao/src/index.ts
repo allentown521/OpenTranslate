@@ -35,7 +35,7 @@ export interface YoudaoConfig {
 }
 
 interface YoudaoTranslateResult {
-  errorCode: Language;
+  errorCode: string;
   query: string;
   translation: Array<string>;
   l: string;
@@ -81,6 +81,21 @@ export class Youdao extends Translator<YoudaoConfig> {
     ).catch(() => {
       throw new TranslateError("NETWORK_ERROR");
     });
+
+    // https://ai.youdao.com/DOCSIRMA/html/trans/api/wbfy/index.html
+    if (res.data.errorCode) {
+      switch (res.data.errorCode) {
+        case "0":
+          break; // means success
+        case "108":
+          throw new TranslateError("AUTH_ERROR");
+        case "401":
+          throw new TranslateError("USEAGE_LIMIT");
+        default:
+          throw new TranslateError("UNKNOWN");
+      }
+    }
+
     const result = res.data;
     return {
       text,
