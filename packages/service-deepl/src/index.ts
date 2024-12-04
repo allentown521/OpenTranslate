@@ -26,6 +26,10 @@ const langMap: [Language, string][] = [
 export interface DeeplConfig {
   auth_key: string;
   /**
+   * depending on you subscription (https://api.deepl.com/v2 for Pro, https://api-free.deepl.com/v2 for Free).
+   */
+  base_url?: string;
+  /**
    * Sets whether the translation engine should first split the input into sentences.
    * This is enabled by default. Possible values are:
    *
@@ -80,7 +84,8 @@ interface DeeplResult {
   translations: Array<{
     detected_source_language: string;
     text: string;
-  }>;
+  }>; // deepl official
+  data: string; // deeplx
 }
 
 export class Deepl extends Translator<DeeplConfig> {
@@ -98,15 +103,22 @@ export class Deepl extends Translator<DeeplConfig> {
     to: Language,
     config: DeeplConfig
   ): Promise<TranslateQueryResult> {
+    const defaultBaseUrl = "https://api.deepl.com/v2";
+    const finalBaseUrl = config.base_url || defaultBaseUrl;
+    const isOfficial = finalBaseUrl.includes("deepl.com");
     const response = await this.request<DeeplResult>(
-      "https://api.deepl.com/v2/translate",
+      finalBaseUrl + "/translate",
       {
         method: "post",
-        data: qs.stringify({
+        data: {
           ...config,
+          text: isOfficial ? [text] : text,
           ["source_lang"]: Deepl.langMap.get(from),
           ["target_lang"]: Deepl.langMap.get(to)
-        })
+        },
+        headers: {
+          Authorization: `DeepL-Auth-Key ${config.auth_key}`
+        }
       }
     ).catch(error => {
       // https://developers.deepl.com/docs/api-reference/translate/openapi-spec-for-text-translation
@@ -128,18 +140,31 @@ export class Deepl extends Translator<DeeplConfig> {
       throw new TranslateError("NETWORK_ERROR");
     }
 
-    const { translations } = response.data;
-
-    return {
-      text: text,
-      from:
-        (translations[0] &&
-          Deepl.langMapReverse.get(translations[0].detected_source_language)) ||
-        from,
-      to,
-      origin: { paragraphs: text.split(/\n+/) },
-      trans: { paragraphs: translations.map(t => t.text) }
-    };
+    if (isOfficial) {
+      const { translations } = response.data;
+      return {
+        text: text,
+        from:
+          (translations[0] &&
+            Deepl.langMapReverse.get(
+              translations[0].detected_source_language
+            )) ||
+          from,
+        to,
+        origin: { paragraphs: text.split(/\n+/) },
+        trans: { paragraphs: translations.map(t => t.text) }
+      };
+    } else {
+      // deeplx and not v2 api, https://deeplx.owo.network/endpoints/free.html
+      const { data } = response.data;
+      return {
+        text: text,
+        from: from,
+        to: to,
+        origin: { paragraphs: text.split(/\n+/) },
+        trans: { paragraphs: [data] }
+      };
+    }
   }
 
   readonly name = "deepl";
