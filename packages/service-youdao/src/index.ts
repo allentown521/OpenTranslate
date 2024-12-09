@@ -60,25 +60,23 @@ export class Youdao extends Translator<YoudaoConfig> {
     const curTime = Math.round(new Date().getTime() / 1000);
     const str1 = config.appKey + truncate(text) + salt + curTime + config.key;
     const sign = sha256(str1);
-    const res = await this.request<YoudaoTranslateResult>(
-      "https://openapi.youdao.com/api",
-      {
-        method: "post",
-        data: qs.stringify({
-          q: text,
-          appKey: config.appKey,
-          salt: salt,
-          from: Youdao.langMap.get(from),
-          to: Youdao.langMap.get(to),
-          sign: sign,
-          signType: "v3",
-          curtime: curTime,
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded"
-          }
-        })
-      }
-    ).catch(() => {
+    const res = await this.request<YoudaoTranslateResult>({
+      url: "https://openapi.youdao.com/api",
+      method: "post",
+      data: qs.stringify({
+        q: text,
+        appKey: config.appKey,
+        salt: salt,
+        from: Youdao.langMap.get(from),
+        to: Youdao.langMap.get(to),
+        sign: sign,
+        signType: "v3",
+        curtime: curTime,
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded"
+        }
+      })
+    }).catch(() => {
       throw new TranslateError("NETWORK_ERROR");
     });
 

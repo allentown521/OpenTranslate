@@ -55,7 +55,8 @@ export class BaiduDomain extends Translator<BaiduDomainConfig> {
 
     const res = await this.request<
       BaiduDomainTranslateResult | BaiduDomainTranslateError
-    >(endpoint, {
+    >({
+      url: endpoint,
       params: {
         from: BaiduDomain.langMap.get(from),
         to: BaiduDomain.langMap.get(to),

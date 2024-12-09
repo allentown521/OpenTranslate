@@ -73,11 +73,8 @@ export abstract class Translator<Config extends {} = {}> {
     config: Config
   ): Promise<TranslateQueryResult>;
 
-  protected request<R = {}>(
-    url: string,
-    config?: AxiosRequestConfig
-  ): AxiosPromise<R> {
-    return this.axios(url, config);
+  protected request<R = {}>(config: AxiosRequestConfig): AxiosPromise<R> {
+    return this.axios(config);
   }
 
   /**

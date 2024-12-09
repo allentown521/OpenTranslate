@@ -154,7 +154,8 @@ export class Tencent extends Translator<TencentConfig> {
       EncHEX
     );
 
-    return this.request<R>(`https://${service}.tencentcloudapi.com`, {
+    return this.request<R>({
+      url: `https://${service}.tencentcloudapi.com`,
       method: "POST",
       headers: {
         "Content-Type": "application/json; charset=utf-8",

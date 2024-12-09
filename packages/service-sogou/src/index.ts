@@ -104,21 +104,19 @@ export class Sogou extends Translator<SogouConfig> {
       "content-type": "application/x-www-form-urlencoded",
       accept: "application/json"
     };
-    const res = await this.request<SogouResult>(
-      "http://fanyi.sogou.com/reventondc/api/sogouTranslate",
-      {
-        method: "post",
-        data: qs.stringify({
-          from: Sogou.langMap.get(from),
-          to: Sogou.langMap.get(to),
-          pid: config.pid,
-          q: text,
-          sign: sign,
-          salt: Sogou.salt
-        }),
-        headers
-      }
-    ).catch(() => {
+    const res = await this.request<SogouResult>({
+      url: "http://fanyi.sogou.com/reventondc/api/sogouTranslate",
+      method: "post",
+      data: qs.stringify({
+        from: Sogou.langMap.get(from),
+        to: Sogou.langMap.get(to),
+        pid: config.pid,
+        q: text,
+        sign: sign,
+        salt: Sogou.salt
+      }),
+      headers
+    }).catch(() => {
       throw new TranslateError("NETWORK_ERROR");
     });
     const result = res.data;

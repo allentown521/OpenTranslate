@@ -106,21 +106,19 @@ export class Deepl extends Translator<DeeplConfig> {
     const defaultBaseUrl = "https://api.deepl.com/v2";
     const finalBaseUrl = config.base_url || defaultBaseUrl;
     const isOfficial = finalBaseUrl.includes("deepl.com");
-    const response = await this.request<DeeplResult>(
-      finalBaseUrl + "/translate",
-      {
-        method: "post",
-        data: {
-          ...config,
-          text: isOfficial ? [text] : text,
-          ["source_lang"]: Deepl.langMap.get(from),
-          ["target_lang"]: Deepl.langMap.get(to)
-        },
-        headers: {
-          Authorization: `DeepL-Auth-Key ${config.auth_key}`
-        }
+    const response = await this.request<DeeplResult>({
+      url: finalBaseUrl + "/translate",
+      method: "post",
+      data: {
+        ...config,
+        text: isOfficial ? [text] : text,
+        ["source_lang"]: Deepl.langMap.get(from),
+        ["target_lang"]: Deepl.langMap.get(to)
+      },
+      headers: {
+        Authorization: `DeepL-Auth-Key ${config.auth_key}`
       }
-    ).catch(error => {
+    }).catch(error => {
       // https://developers.deepl.com/docs/api-reference/translate/openapi-spec-for-text-translation
       if (error && error.response && error.response.status) {
         switch (error.response.status) {

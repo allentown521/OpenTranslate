@@ -74,20 +74,19 @@ export class Baidu extends Translator<BaiduConfig> {
     const { endpoint } = this;
     const { appid, key } = config;
 
-    const res = await this.request<BaiduTranslateResult | BaiduTranslateError>(
-      endpoint,
-      {
-        params: {
-          from: Baidu.langMap.get(from),
-          to: Baidu.langMap.get(to),
-          q: text,
-          salt,
-          appid,
-          sign: md5(appid + text + salt + key)
-        }
+    const res = await this.request<BaiduTranslateResult | BaiduTranslateError>({
+      url: endpoint,
+      params: {
+        from: Baidu.langMap.get(from),
+        to: Baidu.langMap.get(to),
+        q: text,
+        salt,
+        appid,
+        sign: md5(appid + text + salt + key)
       }
-    ).catch(() => {
-      throw new TranslateError("NETWORK_ERROR");
+    }).catch(e => {
+      console.error(new Error("[Baidu service]" + e));
+      throw e;
     });
 
     const { data } = res;

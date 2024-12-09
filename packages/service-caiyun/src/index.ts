@@ -56,21 +56,19 @@ export class Caiyun extends Translator<CaiyunConfig> {
   ): Promise<TranslateQueryResult> {
     const detect = from === "auto";
     const source = text.split(/\n+/);
-    const response = await this.request<CaiyunTranslateResult>(
-      "https://api.interpreter.caiyunai.com/v1/translator",
-      {
-        headers: {
-          "content-type": "application/json",
-          "x-authorization": "token " + config.token
-        },
-        method: "POST",
-        data: JSON.stringify({
-          source,
-          trans_type: `${Caiyun.langMap.get(from)}2${Caiyun.langMap.get(to)}`,
-          detect
-        })
-      }
-    ).catch(error => {
+    const response = await this.request<CaiyunTranslateResult>({
+      url: "https://api.interpreter.caiyunai.com/v1/translator",
+      headers: {
+        "content-type": "application/json",
+        "x-authorization": "token " + config.token
+      },
+      method: "POST",
+      data: JSON.stringify({
+        source,
+        trans_type: `${Caiyun.langMap.get(from)}2${Caiyun.langMap.get(to)}`,
+        detect
+      })
+    }).catch(error => {
       // https://api.interpreter.caiyunai.com/v1/translator
       if (error && error.response && error.response.status) {
         switch (error.response.status) {
