@@ -4,9 +4,9 @@ import {
   TranslateError,
   TranslateQueryResult
 } from "@opentranslate2/translator";
-import HmacSHA1 from "crypto-js/hmac-sha1";
-import Base64 from "crypto-js/enc-base64";
-import { createHash } from "crypto";
+import SHA256 from "crypto-js/sha256";
+import HMACSHA256 from "crypto-js/hmac-sha256";
+import EncHEX from "crypto-js/enc-hex";
 
 // https://help.aliyun.com/zh/machine-translation/support/supported-languages-and-codes?spm=a2c4g.11186623.0.0.6a097467jYw553
 const langMap: [Language, string][] = [
@@ -72,9 +72,7 @@ export class VolcTranslator extends Translator<VolcConfig> {
     ].join("\n");
 
     // 3. 计算规范化请求的哈希值
-    const hashedCanonicalRequest = createHash("sha256")
-      .update(canonicalRequest)
-      .digest("hex");
+    const hashedCanonicalRequest = SHA256(canonicalRequest).toString(EncHEX);
 
     // 4. 构造待签名字符串
     const date = this.getCurrentFormatDate().substring(0, 8);
@@ -87,13 +85,13 @@ export class VolcTranslator extends Translator<VolcConfig> {
     ].join("\n");
 
     // 5. 计算签名密钥
-    const kDate = HmacSHA1(date, `${secret}`);
-    const kRegion = HmacSHA1("cn-north-1", kDate);
-    const kService = HmacSHA1("translate", kRegion);
-    const signingKey = HmacSHA1("request", kService);
+    const kDate = HMACSHA256(date, secret);
+    const kRegion = HMACSHA256("cn-north-1", kDate);
+    const kService = HMACSHA256("translate", kRegion);
+    const signingKey = HMACSHA256("request", kService);
 
     // 6. 计算最终签名
-    return HmacSHA1(stringToSign, signingKey).toString();
+    return HMACSHA256(stringToSign, signingKey).toString(EncHEX);
   }
 
   private percentEncode(str: string): string {
@@ -173,7 +171,8 @@ export class VolcTranslator extends Translator<VolcConfig> {
       throw e;
     });
 
-    const code = res.data.ResponseMetadata.Error?.CodeN;
+    const code =
+      res.data.ResponseMetadata.Error && res.data.ResponseMetadata.Error.CodeN;
     if (code) {
       // https://www.volcengine.com/docs/4640/65067
       console.error(new Error("[Volc service]" + code));
@@ -202,9 +201,7 @@ export class VolcTranslator extends Translator<VolcConfig> {
 
   private calculateBodyHash(formParams: Record<string, any>): string {
     const body = JSON.stringify(formParams);
-    return createHash("sha256")
-      .update(body)
-      .digest("hex");
+    return SHA256(body).toString(EncHEX);
   }
 
   private getCurrentFormatDate(): string {
