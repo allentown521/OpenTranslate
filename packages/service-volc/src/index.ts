@@ -5,8 +5,8 @@ import {
   TranslateQueryResult
 } from "@opentranslate2/translator";
 import SHA256 from "crypto-js/sha256";
-import HMACSHA256 from "crypto-js/hmac-sha256";
 import EncHEX from "crypto-js/enc-hex";
+import CryptoJS from "crypto-js";
 
 // https://help.aliyun.com/zh/machine-translation/support/supported-languages-and-codes?spm=a2c4g.11186623.0.0.6a097467jYw553
 const langMap: [Language, string][] = [
@@ -55,40 +55,46 @@ export class VolcTranslator extends Translator<VolcConfig> {
     params: Record<string, any>,
     secret: string
   ): string {
-    // 1. 计算请求体哈希
+    const currTime = this.getCurrentFormatDate();
     const bodyHash = this.calculateBodyHash(params);
 
-    // 2. 构造规范化请求字符串
+    // 构造规范化请求字符串
     const canonicalRequest = [
       method,
-      "/", // pathname
-      "", // 排序后的 query 参数
-      this.canonicalHeaders(bodyHash), // 规范化的请求头
-      this.signedHeaders(), // 参与签名的请求头
-      bodyHash // 请求体的哈希值
+      "/",
+      new URLSearchParams({
+        Action: params.Action,
+        Version: params.Version
+      }).toString(),
+      this.canonicalHeaders(bodyHash),
+      this.signedHeaders(),
+      bodyHash
     ].join("\n");
 
-    // 3. 计算规范化请求的哈希值
-    const hashedCanonicalRequest = SHA256(canonicalRequest).toString(EncHEX);
+    const hashCanonicalRequest = CryptoJS.SHA256(canonicalRequest).toString(
+      CryptoJS.enc.Hex
+    );
 
-    // 4. 构造待签名字符串
-    const date = this.getCurrentFormatDate().substring(0, 8);
-    const credentialScope = this.createScope(date, "cn-north-1", "translate");
-    const stringToSign = [
+    // 构造签名字符串
+    const date = currTime.substring(0, 8);
+    const credentialScope = `${date}/cn-north-1/translate/request`;
+    const signingStr = [
       "HMAC-SHA256",
-      this.getCurrentFormatDate(),
+      currTime,
       credentialScope,
-      hashedCanonicalRequest
+      hashCanonicalRequest
     ].join("\n");
 
-    // 5. 计算签名密钥
-    const kDate = HMACSHA256(secret, date).toString();
-    const kRegion = HMACSHA256(kDate, "cn-north-1").toString();
-    const kService = HMACSHA256(kRegion, "translate").toString();
-    const signingKey = HMACSHA256(kService, "request").toString();
+    // 计算签名密钥
+    const kDate = CryptoJS.HmacSHA256(date, secret);
+    const kRegion = CryptoJS.HmacSHA256("cn-north-1", kDate);
+    const kService = CryptoJS.HmacSHA256("translate", kRegion);
+    const signingKey = CryptoJS.HmacSHA256("request", kService);
 
-    // 6. 计算最终签名
-    return HMACSHA256(signingKey, stringToSign).toString(EncHEX);
+    // 计算最终签名
+    return CryptoJS.HmacSHA256(signingStr, signingKey).toString(
+      CryptoJS.enc.Hex
+    );
   }
 
   private canonicalHeaders(bodyHash: string): string {
@@ -171,7 +177,7 @@ export class VolcTranslator extends Translator<VolcConfig> {
     // 计算签名
     const signature = this.calculateSignature(
       "POST",
-      { ...urlParams, ...formParams }, // 合并所有参数用于签名
+      urlParams,
       accessKeySecret
     );
 
