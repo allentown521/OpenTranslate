@@ -1,5 +1,5 @@
 {
-  "name": "@arvinxu/translator-service-volc",
+  "name": "@opentranslate2/volc",
   "private": false,
   "publishConfig": {
     "access": "public"
