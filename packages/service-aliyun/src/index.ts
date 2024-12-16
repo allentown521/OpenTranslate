@@ -1,4 +1,3 @@
-import { WatchEventType } from "./../../../node_modules/@types/xml2js/node_modules/@types/node/fs.d";
 import {
   Language,
   Translator,
@@ -7,7 +6,6 @@ import {
 } from "@opentranslate2/translator";
 import HmacSHA1 from "crypto-js/hmac-sha1";
 import Base64 from "crypto-js/enc-base64";
-import encodeUtf8 from "crypto-js/enc-utf8";
 
 // https://help.aliyun.com/zh/machine-translation/support/supported-languages-and-codes?spm=a2c4g.11186623.0.0.6a097467jYw553
 const langMap: [Language, string][] = [
