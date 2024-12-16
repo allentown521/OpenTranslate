@@ -40,14 +40,6 @@ export class Caiyun extends Translator<CaiyunConfig> {
     return [...Caiyun.langMap.keys()];
   }
 
-  async textToSpeech(text: string, lang: Language): Promise<string> {
-    return `https://fanyi.baidu.com/gettts?${qs.stringify({
-      lan: Caiyun.langMap.get(lang !== "auto" ? lang : "zh-CN") || "zh",
-      text,
-      spd: 5
-    })}`;
-  }
-
   protected async query(
     text: string,
     from: Language,
@@ -90,12 +82,10 @@ export class Caiyun extends Translator<CaiyunConfig> {
       from: detect ? await this.detect(text) : from,
       to,
       origin: {
-        paragraphs: source,
-        tts: await this.textToSpeech(text, from)
+        paragraphs: source
       },
       trans: {
-        paragraphs: result.target,
-        tts: await this.textToSpeech(result.target.join(" "), to)
+        paragraphs: result.target
       }
     };
   }
