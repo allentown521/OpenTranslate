@@ -4,9 +4,11 @@ import {
   TranslateError,
   TranslateQueryResult
 } from "@opentranslate2/translator";
-import SHA256 from "crypto-js/sha256";
-import EncHEX from "crypto-js/enc-hex";
-import CryptoJS from "crypto-js";
+import ApiInfo from "./ApiInfo";
+import API from "./base/API";
+import Credentials from "./Credentials";
+import ServiceInfo from "./ServiceInfo";
+import { Header, Query, Body } from "./base/Request";
 
 // https://help.aliyun.com/zh/machine-translation/support/supported-languages-and-codes?spm=a2c4g.11186623.0.0.6a097467jYw553
 const langMap: [Language, string][] = [
@@ -49,88 +51,7 @@ export interface VolcConfig {
 export class VolcTranslator extends Translator<VolcConfig> {
   readonly name = "volc";
 
-  readonly endpoint = "https://open.volcengineapi.com";
-  private calculateSignature(
-    method: string,
-    params: Record<string, any>,
-    secret: string
-  ): string {
-    const currTime = this.getCurrentFormatDate();
-    const bodyHash = this.calculateBodyHash(params);
-
-    // 构造规范化请求字符串
-    const canonicalRequest = [
-      method,
-      "/",
-      new URLSearchParams({
-        Action: params.Action,
-        Version: params.Version
-      }).toString(),
-      this.canonicalHeaders(bodyHash),
-      this.signedHeaders(),
-      bodyHash
-    ].join("\n");
-
-    const hashCanonicalRequest = CryptoJS.SHA256(canonicalRequest).toString(
-      CryptoJS.enc.Hex
-    );
-
-    // 构造签名字符串
-    const date = currTime.substring(0, 8);
-    const credentialScope = `${date}/cn-north-1/translate/request`;
-    const signingStr = [
-      "HMAC-SHA256",
-      currTime,
-      credentialScope,
-      hashCanonicalRequest
-    ].join("\n");
-
-    // 计算签名密钥
-    const kDate = CryptoJS.HmacSHA256(date, secret);
-    const kRegion = CryptoJS.HmacSHA256("cn-north-1", kDate);
-    const kService = CryptoJS.HmacSHA256("translate", kRegion);
-    const signingKey = CryptoJS.HmacSHA256("request", kService);
-
-    // 计算最终签名
-    return CryptoJS.HmacSHA256(signingStr, signingKey).toString(
-      CryptoJS.enc.Hex
-    );
-  }
-
-  private canonicalHeaders(bodyHash: string): string {
-    const headers: Record<string, string> = {
-      "content-type": "application/json",
-      host: "open.volcengineapi.com",
-      "x-content-sha256": bodyHash,
-      "x-date": this.getCurrentFormatDate()
-    };
-
-    // 确保按照字典序排序
-    return (
-      Object.keys(headers)
-        .sort()
-        .map(key => `${key}:${headers[key].trim().replace(/\s+/g, " ")}`) // 规范化头部值
-        .join("\n") + "\n"
-    );
-  }
-
-  private signedHeaders(): string {
-    return "content-type;host;x-content-sha256;x-date";
-  }
-
-  private createScope(date: string, region: string, service: string): string {
-    return [date, region, service, "request"].join("/");
-  }
-
-  private percentEncode(str: string): string {
-    return encodeURIComponent(str)
-      .replace(/\!/g, "%21")
-      .replace(/\'/g, "%27")
-      .replace(/\(/g, "%28")
-      .replace(/\)/g, "%29")
-      .replace(/\*/g, "%2A")
-      .replace(/%20/g, "+");
-  }
+  readonly endpoint = "open.volcengineapi.com";
 
   protected async query(
     text: string,
@@ -161,39 +82,53 @@ export class VolcTranslator extends Translator<VolcConfig> {
 
     const { accessKeyId, accessKeySecret } = config;
 
-    // URL参数
-    const urlParams = {
+    // 设置安全凭证 AK、SK
+
+    // 翻译目标语言、翻译文本列表
+    const toLang = VolcTranslator.langMap.get(to);
+    const textList = [text];
+
+    // api凭证
+    const credentials = new Credentials(
+      accessKeyId,
+      accessKeySecret,
+      "translate",
+      "cn-north-1"
+    );
+
+    // 设置请求的 header、query、body
+    const header = new Header({
+      "Content-Type": "application/json"
+    });
+    const query = new Query({
       Action: "TranslateText",
       Version: "2020-06-01"
-    };
+    });
+    const body = new Body({
+      TargetLanguage: toLang,
+      TextList: textList
+    });
 
-    // 表单参数
-    const formParams = {
-      SourceLanguage: VolcTranslator.langMap.get(from) || "",
-      TargetLanguage: VolcTranslator.langMap.get(to) || "",
-      TextList: [text]
-    };
-
-    // 计算签名
-    const signature = this.calculateSignature(
-      "POST",
-      urlParams,
-      accessKeySecret
-    );
+    const apiInfo = new ApiInfo({
+      method: "POST",
+      path: "/",
+      query,
+      body
+    });
+    // 设置 service、api信息
+    const serviceInfo = new ServiceInfo({
+      host: this.endpoint,
+      header,
+      credentials
+    });
+    // 生成 API
+    const api = API(serviceInfo, apiInfo);
 
     const res = await this.request<VolcTranslateResult>({
       method: "POST",
-      url: this.endpoint,
-      params: {
-        ...urlParams
-      },
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: this.buildAuthHeader(signature, accessKeyId),
-        "X-Date": this.getCurrentFormatDate(),
-        "X-Content-Sha256": this.calculateBodyHash(formParams)
-      },
-      data: formParams
+      url: api.url,
+      data: api.params,
+      headers: api.config.headers
     }).catch(e => {
       console.error(new Error("[Volc service]" + e));
       throw e;
@@ -225,11 +160,6 @@ export class VolcTranslator extends Translator<VolcConfig> {
         paragraphs: [res.data.TranslationList[0].Translation]
       }
     };
-  }
-
-  private calculateBodyHash(formParams: Record<string, any>): string {
-    const body = JSON.stringify(formParams);
-    return SHA256(body).toString(EncHEX);
   }
 
   private getCurrentFormatDate(): string {
