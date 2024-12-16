@@ -61,14 +61,11 @@ export class VolcTranslator extends Translator<VolcConfig> {
     // 2. 构造规范化请求字符串
     const canonicalRequest = [
       method,
-      this.percentEncode("/"),
-      "", // 暂时没有query参数
-      `content-type:application/json\n` +
-        `host:open.volcengineapi.com\n` +
-        `x-content-sha256:${bodyHash}\n` +
-        `x-date:${this.getCurrentFormatDate()}\n`,
-      "content-type;host;x-content-sha256;x-date",
-      bodyHash
+      "/", // pathname
+      "", // 排序后的 query 参数
+      this.canonicalHeaders(bodyHash), // 规范化的请求头
+      this.signedHeaders(), // 参与签名的请求头
+      bodyHash // 请求体的哈希值
     ].join("\n");
 
     // 3. 计算规范化请求的哈希值
@@ -76,7 +73,7 @@ export class VolcTranslator extends Translator<VolcConfig> {
 
     // 4. 构造待签名字符串
     const date = this.getCurrentFormatDate().substring(0, 8);
-    const credentialScope = `${date}/cn-north-1/translate/request`;
+    const credentialScope = this.createScope(date, "cn-north-1", "translate");
     const stringToSign = [
       "HMAC-SHA256",
       this.getCurrentFormatDate(),
@@ -85,13 +82,38 @@ export class VolcTranslator extends Translator<VolcConfig> {
     ].join("\n");
 
     // 5. 计算签名密钥
-    const kDate = HMACSHA256(date, secret);
-    const kRegion = HMACSHA256("cn-north-1", kDate);
-    const kService = HMACSHA256("translate", kRegion);
-    const signingKey = HMACSHA256("request", kService);
+    const kDate = HMACSHA256(secret, date).toString();
+    const kRegion = HMACSHA256(kDate, "cn-north-1").toString();
+    const kService = HMACSHA256(kRegion, "translate").toString();
+    const signingKey = HMACSHA256(kService, "request").toString();
 
     // 6. 计算最终签名
-    return HMACSHA256(stringToSign, signingKey).toString(EncHEX);
+    return HMACSHA256(signingKey, stringToSign).toString(EncHEX);
+  }
+
+  private canonicalHeaders(bodyHash: string): string {
+    const headers: Record<string, string> = {
+      "content-type": "application/json",
+      host: "open.volcengineapi.com",
+      "x-content-sha256": bodyHash,
+      "x-date": this.getCurrentFormatDate()
+    };
+
+    // 确保按照字典序排序
+    return (
+      Object.keys(headers)
+        .sort()
+        .map(key => `${key}:${headers[key].trim().replace(/\s+/g, " ")}`) // 规范化头部值
+        .join("\n") + "\n"
+    );
+  }
+
+  private signedHeaders(): string {
+    return "content-type;host;x-content-sha256;x-date";
+  }
+
+  private createScope(date: string, region: string, service: string): string {
+    return [date, region, service, "request"].join("/");
   }
 
   private percentEncode(str: string): string {
