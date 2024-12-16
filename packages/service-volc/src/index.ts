@@ -10,7 +10,7 @@ import Credentials from "./Credentials";
 import ServiceInfo from "./ServiceInfo";
 import { Header, Query, Body } from "./base/Request";
 
-// https://help.aliyun.com/zh/machine-translation/support/supported-languages-and-codes?spm=a2c4g.11186623.0.0.6a097467jYw553
+// https://www.volcengine.com/docs/4640/35107
 const langMap: [Language, string][] = [
   ["auto", "auto"],
   ["zh-CN", "zh"],
@@ -82,8 +82,6 @@ export class VolcTranslator extends Translator<VolcConfig> {
 
     const { accessKeyId, accessKeySecret } = config;
 
-    // 设置安全凭证 AK、SK
-
     // 翻译目标语言、翻译文本列表
     const toLang = VolcTranslator.langMap.get(to);
     const textList = [text];
@@ -124,6 +122,7 @@ export class VolcTranslator extends Translator<VolcConfig> {
     // 生成 API
     const api = API(serviceInfo, apiInfo);
 
+    // https://www.volcengine.com/docs/4640/65067
     const res = await this.request<VolcTranslateResult>({
       method: "POST",
       url: api.url,
