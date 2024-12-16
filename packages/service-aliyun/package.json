@@ -1,0 +1,32 @@
+{
+  "name": "@opentranslate2/aliyun",
+  "private": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "version": "1.4.15",
+  "description": "Aliyun translator with OpenTranslate API.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "test": "jest --runInBand --forceExit --detectOpenHandles",
+    "build": "rm -rf dist && tsc --project tsconfig.build.json"
+  },
+  "keywords": [
+    "OpenTranslate",
+    "translate",
+    "translator"
+  ],
+  "repository": "OpenTranslate/OpenTranslate",
+  "homepage": "https://github.com/allentown521/OpenTranslate/tree/master/packages/service-aliyun",
+  "bugs": "https://github.com/allentown521/opentranslate/issues/",
+  "author": "OpenTranslate",
+  "license": "MIT",
+  "dependencies": {
+    "@opentranslate2/translator": "^1.4.7",
+    "@types/md5": "^2.1.33",
+    "@types/qs": "^6.5.3",
+    "md5": "^2.2.1",
+    "qs": "^6.8.0"
+  }
+}
