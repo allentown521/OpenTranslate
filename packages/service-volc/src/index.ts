@@ -6,6 +6,7 @@ import {
 } from "@opentranslate2/translator";
 import HmacSHA1 from "crypto-js/hmac-sha1";
 import Base64 from "crypto-js/enc-base64";
+import { createHash } from "crypto";
 
 // https://help.aliyun.com/zh/machine-translation/support/supported-languages-and-codes?spm=a2c4g.11186623.0.0.6a097467jYw553
 const langMap: [Language, string][] = [
@@ -51,38 +52,48 @@ export class VolcTranslator extends Translator<VolcConfig> {
   readonly endpoint = "https://open.volcengineapi.com";
   private calculateSignature(
     method: string,
-    params: Record<string, string>,
+    params: Record<string, any>,
     secret: string
   ): string {
-    // 1. 参数排序
-    const sortedParams = Object.keys(params)
-      .sort()
-      .reduce(
-        (acc, key) => ({
-          ...acc,
-          [key]: params[key]
-        }),
-        {} as Record<string, string>
-      );
+    // 1. 计算请求体哈希
+    const bodyHash = this.calculateBodyHash(params);
 
     // 2. 构造规范化请求字符串
-    const canonicalizedQueryString = Object.entries(sortedParams)
-      .map(
-        ([key, value]) =>
-          `${this.percentEncode(key)}=${this.percentEncode(value)}`
-      )
-      .join("&");
-
-    // 3. 构造待签名字符串
-    const stringToSign = [
+    const canonicalRequest = [
       method,
       this.percentEncode("/"),
-      this.percentEncode(canonicalizedQueryString)
-    ].join("&");
+      "", // 暂时没有query参数
+      `content-type:application/json\n` +
+        `host:open.volcengineapi.com\n` +
+        `x-content-sha256:${bodyHash}\n` +
+        `x-date:${this.getCurrentFormatDate()}\n`,
+      "content-type;host;x-content-sha256;x-date",
+      bodyHash
+    ].join("\n");
 
-    // 4. 计算签名
-    const hmac = HmacSHA1(stringToSign, `${secret}&`);
-    return Base64.stringify(hmac);
+    // 3. 计算规范化请求的哈希值
+    const hashedCanonicalRequest = createHash("sha256")
+      .update(canonicalRequest)
+      .digest("hex");
+
+    // 4. 构造待签名字符串
+    const date = this.getCurrentFormatDate().substring(0, 8);
+    const credentialScope = `${date}/cn-north-1/translate/request`;
+    const stringToSign = [
+      "HMAC-SHA256",
+      this.getCurrentFormatDate(),
+      credentialScope,
+      hashedCanonicalRequest
+    ].join("\n");
+
+    // 5. 计算签名密钥
+    const kDate = HmacSHA1(date, `${secret}`);
+    const kRegion = HmacSHA1("cn-north-1", kDate);
+    const kService = HmacSHA1("translate", kRegion);
+    const signingKey = HmacSHA1("request", kService);
+
+    // 6. 计算最终签名
+    return HmacSHA1(stringToSign, signingKey).toString();
   }
 
   private percentEncode(str: string): string {
@@ -148,11 +159,13 @@ export class VolcTranslator extends Translator<VolcConfig> {
       method: "POST",
       url: this.endpoint,
       params: {
-        ...urlParams,
-        Signature: signature
+        ...urlParams
       },
       headers: {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        Authorization: this.buildAuthHeader(signature, accessKeyId),
+        "X-Date": this.getCurrentFormatDate(),
+        "X-Content-Sha256": this.calculateBodyHash(formParams)
       },
       data: formParams
     }).catch(e => {
@@ -185,6 +198,27 @@ export class VolcTranslator extends Translator<VolcConfig> {
         paragraphs: [res.data.TranslationList[0].Translation]
       }
     };
+  }
+
+  private calculateBodyHash(formParams: Record<string, any>): string {
+    const body = JSON.stringify(formParams);
+    return createHash("sha256")
+      .update(body)
+      .digest("hex");
+  }
+
+  private getCurrentFormatDate(): string {
+    const date = new Date();
+    return date
+      .toISOString()
+      .replace(/[-:]/g, "") // 移除破折号和冒号
+      .replace(/\.\d{3}/, ""); // 移除毫秒
+  }
+
+  private buildAuthHeader(signature: string, accessKeyId: string): string {
+    const date = this.getCurrentFormatDate().substring(0, 8);
+    const credentialScope = `${date}/cn-north-1/translate/request`;
+    return `HMAC-SHA256 Credential=${accessKeyId}/${credentialScope}, SignedHeaders=content-type;host;x-content-sha256;x-date, Signature=${signature}`;
   }
 
   /** Translator lang to custom lang */
