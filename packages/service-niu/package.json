@@ -1,0 +1,35 @@
+{
+  "name": "@opentranslate2/niu",
+  "version": "1.4.12",
+  "description": "Niu translator with OpenTranslate API.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "private": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "test": "jest --runInBand --forceExit --detectOpenHandles",
+    "build": "rm -rf dist && tsc --project tsconfig.build.json"
+  },
+  "keywords": [
+    "OpenTranslate",
+    "translate",
+    "translator"
+  ],
+  "author": "OpenTranslate",
+  "license": "MIT",
+  "homepage": "https://github.com/allentown521/OpenTranslate/tree/master/packages/service-niu",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/allentown521/OpenTranslate.git"
+  },
+  "bugs": {
+    "url": "https://github.com/allentown521/OpenTranslate/issues"
+  },
+  "dependencies": {
+    "@opentranslate2/translator": "^1.4.7",
+    "@types/qs": "^6.5.3",
+    "qs": "^6.8.0"
+  }
+}
