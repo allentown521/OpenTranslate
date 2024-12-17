@@ -7,10 +7,26 @@ import {
 import qs from "qs";
 import axios from "axios";
 
-const langMap: [Language, string][] = [
-  ["auto", ""],
+const fromLangMap: [Language, string][] = [
+  ["auto", "auto"],
   ["zh-CN", "ZH"],
   ["zh-TW", "ZH"],
+  ["en", "EN"],
+  ["de", "DE"],
+  ["fr", "FR"],
+  ["it", "IT"],
+  ["ja", "JA"],
+  ["es", "ES"],
+  ["nl", "NL"],
+  ["pl", "PL"],
+  ["pt", "PT"],
+  ["ru", "RU"]
+];
+
+const toLangMap: [Language, string][] = [
+  ["auto", "auto"],
+  ["zh-CN", "ZH-HANS"],
+  ["zh-TW", "ZH-HANT"],
   ["en", "EN"],
   ["de", "DE"],
   ["fr", "FR"],
@@ -86,15 +102,22 @@ interface DeeplResult {
     text: string;
   }>; // deepl official
   data: string; // deeplx
+  result: {
+    // web
+    texts: Array<{
+      text: string;
+    }>;
+  };
 }
 
 export class Deepl extends Translator<DeeplConfig> {
   /** Translator lang to custom lang */
-  private static readonly langMap = new Map(langMap);
+  private static readonly fromLangMap = new Map(fromLangMap);
+  private static readonly toLangMap = new Map(toLangMap);
 
   /** Custom lang to translator lang */
-  private static readonly langMapReverse = new Map(
-    langMap.map(([translatorLang, lang]) => [lang, translatorLang])
+  private static readonly fromLangMapReverse = new Map(
+    fromLangMap.map(([translatorLang, lang]) => [lang, translatorLang])
   );
 
   protected async query(
@@ -105,34 +128,88 @@ export class Deepl extends Translator<DeeplConfig> {
   ): Promise<TranslateQueryResult> {
     const defaultBaseUrl = "https://api.deepl.com/v2";
     const finalBaseUrl = config.base_url || defaultBaseUrl;
-    const isOfficial = finalBaseUrl.includes("deepl.com");
-    const response = await this.request<DeeplResult>({
-      url: finalBaseUrl + "/translate",
-      method: "post",
-      data: {
-        ...config,
-        text: isOfficial ? [text] : text,
-        ["source_lang"]: Deepl.langMap.get(from),
-        ["target_lang"]: Deepl.langMap.get(to)
-      },
-      headers: {
-        Authorization: `DeepL-Auth-Key ${config.auth_key}`
-      }
-    }).catch(error => {
-      // https://developers.deepl.com/docs/api-reference/translate/openapi-spec-for-text-translation
-      if (error && error.response && error.response.status) {
-        switch (error.response.status) {
-          case 403:
-            throw new TranslateError("AUTH_ERROR");
-          case 456: // never happen now , need to check
-            throw new TranslateError("USEAGE_LIMIT");
-          default:
-            throw new TranslateError("UNKNOWN");
+    const isWeb = finalBaseUrl.includes("jsonrpc");
+    const isOfficial = finalBaseUrl.includes("deepl.com") && !isWeb;
+    let response;
+    if (!isWeb) {
+      response = await this.request<DeeplResult>({
+        url: finalBaseUrl + "/translate",
+        method: "post",
+        data: {
+          ...config,
+          text: isOfficial ? [text] : text,
+          ["source_lang"]: Deepl.fromLangMap.get(from),
+          ["target_lang"]: Deepl.toLangMap.get(to)
+        },
+        headers: {
+          Authorization: `DeepL-Auth-Key ${config.auth_key}`
         }
+      }).catch(error => {
+        // https://developers.deepl.com/docs/api-reference/translate/openapi-spec-for-text-translation
+        if (error && error.response && error.response.status) {
+          switch (error.response.status) {
+            case 403:
+              throw new TranslateError("AUTH_ERROR");
+            case 456:
+              throw new TranslateError("USEAGE_LIMIT");
+            default:
+              throw new TranslateError("UNKNOWN");
+          }
+        } else {
+          throw new TranslateError("UNKNOWN");
+        }
+      });
+    } else {
+      // refrer pot translation app
+      const rand = this.getRandomNumber();
+      const body = {
+        jsonrpc: "2.0",
+        method: "LMT_handle_texts",
+        params: {
+          splitting: "newlines",
+          lang: {
+            ["source_lang_user_selected"]: Deepl.fromLangMap.get(from),
+            ["target_lang"]: (Deepl.toLangMap.get(to) || "").slice(0, 2) // todo: not support zh-TW.
+          },
+          texts: [{ text, requestAlternatives: 3 }],
+          timestamp: this.getTimeStamp(this.getICount(text))
+        },
+        id: rand
+      };
+
+      let bodyStr = JSON.stringify(body);
+
+      // https://github.com/you-apps/TranslateYou/blob/44c69d2783304460a5b0f5bdb949d9089893abbe/app/src/main/java/com/bnyro/translate/api/deepl/DeeplEngine.kt#L124
+      // The random ID determines the spacing to use, do NOT change it
+      // This is how the client side of the web service works and the server-side
+      // expects the same, otherwise you will get soft-banned
+      if ((rand + 5) % 29 === 0 || (rand + 3) % 13 === 0) {
+        bodyStr = bodyStr.replace('"method":"', '"method" : "');
       } else {
-        throw new TranslateError("UNKNOWN");
+        bodyStr = bodyStr.replace('"method":"', '"method": "');
       }
-    });
+
+      response = await this.request<DeeplResult>({
+        url: finalBaseUrl,
+        method: "post",
+        headers: { "Content-Type": "application/json" },
+        data: bodyStr
+      }).catch(error => {
+        // 处理错误
+        if (error && error.response && error.response.status) {
+          switch (error.response.status) {
+            case 403:
+              throw new TranslateError("AUTH_ERROR");
+            case 429:
+              throw new TranslateError("TOO_MANY_REQUESTS");
+            default:
+              throw new TranslateError("UNKNOWN");
+          }
+        } else {
+          throw new TranslateError("UNKNOWN");
+        }
+      });
+    }
 
     if (!response || !response.data) {
       throw new TranslateError("NETWORK_ERROR");
@@ -144,13 +221,22 @@ export class Deepl extends Translator<DeeplConfig> {
         text: text,
         from:
           (translations[0] &&
-            Deepl.langMapReverse.get(
+            Deepl.fromLangMapReverse.get(
               translations[0].detected_source_language
             )) ||
           from,
         to,
         origin: { paragraphs: text.split(/\n+/) },
         trans: { paragraphs: translations.map(t => t.text) }
+      };
+    } else if (isWeb) {
+      const { result } = response.data;
+      return {
+        text: text,
+        from: from,
+        to: to,
+        origin: { paragraphs: text.split(/\n+/) },
+        trans: { paragraphs: result.texts.map(t => t.text.trim()) }
       };
     } else {
       // deeplx and not v2 api, https://deeplx.owo.network/endpoints/free.html
@@ -167,10 +253,28 @@ export class Deepl extends Translator<DeeplConfig> {
 
   readonly name = "deepl";
 
-  getSupportLanguages(): Language[] {
-    return [...Deepl.langMap.keys()];
+  getRandomNumber(): number {
+    const rand = Math.floor(Math.random() * 99999) + 100000;
+    return rand * 1000;
   }
 
+  getTimeStamp(iCount: number): number {
+    const ts = Date.now();
+    if (iCount !== 0) {
+      iCount = iCount + 1;
+      return ts - (ts % iCount) + iCount;
+    } else {
+      return ts;
+    }
+  }
+
+  getSupportLanguages(): Language[] {
+    return [...Deepl.toLangMap.keys()];
+  }
+
+  getICount(translateText: string): number {
+    return translateText.split("i").length - 1;
+  }
   // async detect(text: string): Promise<Language> {
   // }
 
