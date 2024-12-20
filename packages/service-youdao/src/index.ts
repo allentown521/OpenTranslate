@@ -85,6 +85,7 @@ export class Youdao extends Translator<YoudaoConfig> {
       switch (res.data.errorCode) {
         case "0":
           break; // means success
+        case "101": // params error
         case "108":
           throw new TranslateError("AUTH_ERROR");
         case "401":
