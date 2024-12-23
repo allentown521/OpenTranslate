@@ -43,12 +43,13 @@ const langMap: [Language, string][] = [
 export interface AliyunConfig {
   accessKeyId: string;
   accessKeySecret: string;
+  endpoint?: string; // optional, https://help.aliyun.com/zh/machine-translation/developer-reference/api-alimt-2018-10-12-endpoint
 }
 
 export class Aliyun extends Translator<AliyunConfig> {
   readonly name = "aliyun";
 
-  readonly endpoint = "https://mt.aliyuncs.com";
+  readonly endpoint = "https://mt.cn-hangzhou.aliyuncs.com"; // mt.aliyuncs.com seems broken
 
   private calculateSignature(
     method: string,
@@ -148,7 +149,7 @@ export class Aliyun extends Translator<AliyunConfig> {
 
     const res = await this.request<AliyunTranslateResult>({
       method: "POST",
-      url: this.endpoint,
+      url: config.endpoint || this.endpoint,
       params: {
         ...urlParams,
         Signature: signature
