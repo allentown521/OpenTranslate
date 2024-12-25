@@ -17,14 +17,16 @@ type NiuTranslateResult = {
   error_msg?: string;
 };
 
+// https://niutrans.com/documents/contents/trans_text#languageList
 const langMap: [Language, string][] = [
   ["auto", ""],
   ["en", "en"],
+  ["zh-CN", "zh"],
+  ["zh-TW", "cht"],
+  ["de", "de"],
   ["ru", "ru"],
   ["pt", "pt"],
   ["es", "es"],
-  ["zh-CN", "zh"],
-  ["zh-TW", "cht"],
   ["ja", "ja"],
   ["ko", "ko"],
   ["fr", "fr"],

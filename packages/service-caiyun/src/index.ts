@@ -14,6 +14,7 @@ type CaiyunTranslateResult = {
   rc: number;
 };
 
+// https://docs.caiyunapp.com/lingocloud-api/#%E6%94%AF%E6%8C%81%E7%9A%84%E8%AF%AD%E8%A8%80
 const langMap: [Language, string][] = [
   ["auto", "auto"],
   ["zh-CN", "zh"],

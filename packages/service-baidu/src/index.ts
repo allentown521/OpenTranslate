@@ -10,6 +10,7 @@ import qs from "qs";
 const langMap: [Language, string][] = [
   ["auto", "auto"],
   ["zh-CN", "zh"],
+  ["zh-TW", "cht"],
   ["en", "en"],
   ["yue", "yue"],
   ["wyw", "wyw"],
@@ -35,7 +36,6 @@ const langMap: [Language, string][] = [
   ["sl", "slo"],
   ["sv", "swe"],
   ["hu", "hu"],
-  ["zh-TW", "cht"],
   ["vi", "vie"]
 ];
 

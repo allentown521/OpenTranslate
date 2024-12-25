@@ -14,6 +14,7 @@ import { Header, Query, Body } from "./base/Request";
 const langMap: [Language, string][] = [
   ["auto", "auto"],
   ["zh-CN", "zh"],
+  ["zh-TW", "zh-Hant"],
   ["en", "en"],
   ["yue", "yue"],
   ["wyw", "wyw"],
@@ -39,7 +40,6 @@ const langMap: [Language, string][] = [
   ["sl", "slo"],
   ["sv", "swe"],
   ["hu", "hu"],
-  ["zh-TW", "zh-Hant"],
   ["vi", "vie"]
 ];
 

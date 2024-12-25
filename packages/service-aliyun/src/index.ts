@@ -11,6 +11,7 @@ import Base64 from "crypto-js/enc-base64";
 const langMap: [Language, string][] = [
   ["auto", "auto"],
   ["zh-CN", "zh"],
+  ["zh-TW", "zh-tw"],
   ["en", "en"],
   ["yue", "yue"],
   ["wyw", "wyw"],
@@ -36,7 +37,6 @@ const langMap: [Language, string][] = [
   ["sl", "slo"],
   ["sv", "swe"],
   ["hu", "hu"],
-  ["zh-TW", "zh-tw"],
   ["vi", "vie"]
 ];
 

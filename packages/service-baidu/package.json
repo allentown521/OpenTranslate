@@ -4,7 +4,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "1.4.8",
+  "version": "1.4.9",
   "description": "Baidu translator with OpenTranslate API.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

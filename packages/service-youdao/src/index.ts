@@ -13,13 +13,16 @@ function truncate(q: string): string {
   return q.substring(0, 10) + len + q.substring(len - 10, len);
 }
 
+// https://ai.youdao.com/DOCSIRMA/html/trans/api/wbfy/index.html#section-12
 const langMap: [Language, string][] = [
   ["auto", "auto"],
   ["en", "en"],
+  ["zh-CN", "zh-CHS"],
+  ["zh-TW", "zh-CHT"],
   ["ru", "ru"],
   ["pt", "pt"],
   ["es", "es"],
-  ["zh-CN", "zh-CHS"],
+  ["de", "de"],
   ["ja", "ja"],
   ["ko", "ko"],
   ["fr", "fr"],
