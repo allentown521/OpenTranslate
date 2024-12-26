@@ -81,6 +81,7 @@ export class Azure extends Translator<AzureConfig> {
     const source = text.split(/\n+/);
     let token = { data: "" };
     if (config.free) {
+      // 通过抓包Microsoft Edge浏览器提供的翻译服务拿到
       const token_url = "https://edge.microsoft.com/translate/auth";
 
       token = await this.request({
@@ -95,6 +96,7 @@ export class Azure extends Translator<AzureConfig> {
     }
 
     // referer: pot translation app
+    // seems only authorization is needed
     const freeHeaders = {
       accept: "*/*",
       "accept-language":
