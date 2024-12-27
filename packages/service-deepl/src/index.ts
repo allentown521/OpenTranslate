@@ -149,14 +149,20 @@ export class Deepl extends Translator<DeeplConfig> {
         if (error && error.response && error.response.status) {
           switch (error.response.status) {
             case 403:
-              throw new TranslateError("AUTH_ERROR");
+              throw new TranslateError(
+                "AUTH_ERROR",
+                error.response.data.message
+              );
             case 456:
-              throw new TranslateError("USEAGE_LIMIT");
+              throw new TranslateError(
+                "USEAGE_LIMIT",
+                error.response.data.message
+              );
             default:
-              throw new TranslateError("UNKNOWN");
+              throw new TranslateError("UNKNOWN", error.response.data.message);
           }
         } else {
-          throw new TranslateError("UNKNOWN");
+          throw new TranslateError("UNKNOWN", error.response.data.message);
         }
       });
     } else {

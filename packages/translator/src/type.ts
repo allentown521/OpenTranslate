@@ -18,11 +18,12 @@ export type TranslateErrorType =
   | "UNSUPPORTED_LANG"
   | "USEAGE_LIMIT"
   | "AUTH_ERROR"
-  | "UNKNOWN";
+  | "UNKNOWN"
+  | "TOO_MANY_REQUESTS";
 
 export class TranslateError extends Error {
-  constructor(message: TranslateErrorType) {
-    super(message);
+  constructor(message: TranslateErrorType, cause?: string) {
+    super(message, { cause });
   }
 }
 

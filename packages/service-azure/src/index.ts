@@ -141,13 +141,19 @@ export class Azure extends Translator<AzureConfig> {
         switch (error.response.status) {
           case 401:
           case 403:
-            throw new TranslateError("AUTH_ERROR");
+            throw new TranslateError("AUTH_ERROR", error.response.data.message);
           case 429:
-            throw new TranslateError("TOO_MANY_REQUESTS");
+            throw new TranslateError(
+              "TOO_MANY_REQUESTS",
+              error.response.data.message
+            );
           case 500: // never happen now , need to check
-            throw new TranslateError("USEAGE_LIMIT");
+            throw new TranslateError(
+              "USEAGE_LIMIT",
+              error.response.data.message
+            );
           default:
-            throw new TranslateError("UNKNOWN");
+            throw new TranslateError("UNKNOWN", error.response.data.message);
         }
       } else {
         throw new TranslateError("UNKNOWN");

@@ -91,18 +91,19 @@ export class Baidu extends Translator<BaiduConfig> {
 
     const { data } = res;
 
-    const error = (data as BaiduTranslateError).error_code;
+    const translateError = data as BaiduTranslateError;
+    const error = translateError.error_code;
     if (error) {
       // https://api.fanyi.baidu.com/api/trans/product/apidoc#joinFile
       console.error(new Error("[Baidu service]" + error));
       switch (error) {
         case "52003":
         case "54000":
-          throw new TranslateError("AUTH_ERROR");
+          throw new TranslateError("AUTH_ERROR", translateError.error_msg);
         case "54004":
-          throw new TranslateError("USEAGE_LIMIT");
+          throw new TranslateError("USEAGE_LIMIT", translateError.error_msg);
         default:
-          throw new TranslateError("UNKNOWN");
+          throw new TranslateError("UNKNOWN", translateError.error_msg);
       }
     }
 

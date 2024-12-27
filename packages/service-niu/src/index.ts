@@ -86,9 +86,9 @@ export class Niu extends Translator<NiuConfig> {
       switch (errorCode) {
         case "13001":
           // 字符流量不足或者没有访问权限
-          throw new TranslateError("AUTH_ERROR");
+          throw new TranslateError("AUTH_ERROR", result.error_msg);
         default:
-          throw new TranslateError("UNKNOWN");
+          throw new TranslateError("UNKNOWN", result.error_msg);
       }
     }
 

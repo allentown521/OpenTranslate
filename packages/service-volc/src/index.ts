@@ -140,11 +140,20 @@ export class VolcTranslator extends Translator<VolcConfig> {
       console.error(new Error("[Volc service]" + code));
       switch (code) {
         case 100009:
-          throw new TranslateError("AUTH_ERROR");
+          throw new TranslateError(
+            "AUTH_ERROR",
+            res.data.ResponseMetadata.Error?.Message
+          );
         case 100018: // todo docs is not mentioned
-          throw new TranslateError("USEAGE_LIMIT");
+          throw new TranslateError(
+            "USEAGE_LIMIT",
+            res.data.ResponseMetadata.Error?.Message
+          );
         default:
-          throw new TranslateError("UNKNOWN");
+          throw new TranslateError(
+            "UNKNOWN",
+            res.data.ResponseMetadata.Error?.Message
+          );
       }
     }
 

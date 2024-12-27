@@ -170,12 +170,12 @@ export class Aliyun extends Translator<AliyunConfig> {
       switch (code) {
         case "InvalidAccessKeyId.NotFound":
         case "SignatureNonceUsed":
-          throw new TranslateError("AUTH_ERROR");
+          throw new TranslateError("AUTH_ERROR", code);
         case "Account.Arrearage":
         case "Account.Arrearage": // todo docs is not valid
-          throw new TranslateError("USEAGE_LIMIT");
+          throw new TranslateError("USEAGE_LIMIT", code);
         default:
-          throw new TranslateError("UNKNOWN");
+          throw new TranslateError("UNKNOWN", code);
       }
     }
 

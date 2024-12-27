@@ -4,12 +4,12 @@
     "declaration": true,
     "esModuleInterop": true,
     "importHelpers": true,
-    "lib": ["esnext", "dom", "dom.iterable", "scripthost"],
+    "lib": ["es2022", "dom", "dom.iterable", "scripthost"],
     "module": "commonjs",
     "resolveJsonModule": true,
     "sourceMap": true,
     "strict": true,
-    "target": "esnext",
+    "target": "es2022",
     "types": ["jest","node"]
   },
   "exclude": ["node_modules", "dist"]

@@ -209,13 +209,13 @@ export class Tencent extends Translator<TencentConfig> {
       switch (data.Response.Error.Code) {
         case "AuthFailure.SecretIdNotFound":
         case "AuthFailure.InvalidSecretId":
-          throw new TranslateError("AUTH_ERROR");
+          throw new TranslateError("AUTH_ERROR", data.Response.Error.Code);
         case "FailedOperation.NoFreeAmount":
         case "FailedOperation.UserHasNoFreeAmount":
         case "FailedOperation.ServiceIsolate":
-          throw new TranslateError("USEAGE_LIMIT");
+          throw new TranslateError("USEAGE_LIMIT", data.Response.Error.Code);
         default:
-          throw new TranslateError("UNKNOWN");
+          throw new TranslateError("UNKNOWN", data.Response.Error.Code);
       }
     }
 

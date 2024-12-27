@@ -90,11 +90,11 @@ export class Youdao extends Translator<YoudaoConfig> {
           break; // means success
         case "101": // params error
         case "108":
-          throw new TranslateError("AUTH_ERROR");
+          throw new TranslateError("AUTH_ERROR", res.data.errorCode);
         case "401":
-          throw new TranslateError("USEAGE_LIMIT");
+          throw new TranslateError("USEAGE_LIMIT", res.data.errorCode);
         default:
-          throw new TranslateError("UNKNOWN");
+          throw new TranslateError("UNKNOWN", res.data.errorCode);
       }
     }
 
