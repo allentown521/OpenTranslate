@@ -148,21 +148,31 @@ export class Deepl extends Translator<DeeplConfig> {
         // https://developers.deepl.com/docs/api-reference/translate/openapi-spec-for-text-translation
         if (error && error.response && error.response.status) {
           switch (error.response.status) {
+            case 400:
+              throw new TranslateError(
+                "AUTH_ERROR",
+                error.response.data?.message
+              );
             case 403:
               throw new TranslateError(
                 "AUTH_ERROR",
-                error.response.data.message
+                "Authorization failed. Please supply a valid DeepL-Auth-Key via the Authorization header."
+              );
+            case 429:
+              throw new TranslateError(
+                "TOO_MANY_REQUESTS",
+                "Too many requests. Please wait and resend your request."
               );
             case 456:
               throw new TranslateError(
                 "USEAGE_LIMIT",
-                error.response.data.message
+                "Quota exceeded. The character limit has been reached."
               );
             default:
-              throw new TranslateError("UNKNOWN", error.response.data.message);
+              throw new TranslateError("UNKNOWN", error.response.data?.message);
           }
         } else {
-          throw new TranslateError("UNKNOWN", error.response.data.message);
+          throw new TranslateError("UNKNOWN", error.response.data?.message);
         }
       });
     } else {

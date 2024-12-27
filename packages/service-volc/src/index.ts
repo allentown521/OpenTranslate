@@ -81,6 +81,9 @@ export class VolcTranslator extends Translator<VolcConfig> {
     };
 
     const { accessKeyId, accessKeySecret } = config;
+    if (!accessKeyId || !accessKeySecret) {
+      throw new TranslateError("AUTH_ERROR", "access key id or secret is null");
+    }
 
     // 翻译目标语言、翻译文本列表
     const toLang = VolcTranslator.langMap.get(to);

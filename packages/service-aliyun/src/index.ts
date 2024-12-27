@@ -111,6 +111,7 @@ export class Aliyun extends Translator<AliyunConfig> {
     type AliyunTranslateResult = {
       RequestId: string;
       Code: string;
+      Message?: string;
       Data: {
         WordCount: string;
         Translated: string;
@@ -158,25 +159,32 @@ export class Aliyun extends Translator<AliyunConfig> {
         "Content-Type": "application/x-www-form-urlencoded"
       },
       data: new URLSearchParams(formParams).toString()
-    }).catch(e => {
-      console.error(new Error("[Aliyun service]" + e));
-      throw e;
+    }).catch(error => {
+      console.error(new Error("[Aliyun service]" + error));
+      if (error && error.response && error.response.status) {
+        switch (error.response.status) {
+          case 400: // AccessKeyId is mandatory for this action.
+          case 404: // Specified access key is not found.
+            throw new TranslateError(
+              "AUTH_ERROR",
+              (error.response.data as AliyunTranslateError)?.Message
+            );
+          case 113: // never happen now , need to check
+            throw new TranslateError(
+              "USEAGE_LIMIT",
+              (error.response.data as AliyunTranslateError)?.Message
+            );
+          default:
+            throw new TranslateError(
+              "UNKNOWN",
+              (error.response.data as AliyunTranslateError)?.Message
+            );
+        }
+      }
     });
 
-    const code = res.data.Code;
-    if (code !== "200") {
-      // https://api.fanyi.baidu.com/api/trans/product/apidoc#joinFile
-      console.error(new Error("[Aliyun service]" + code));
-      switch (code) {
-        case "InvalidAccessKeyId.NotFound":
-        case "SignatureNonceUsed":
-          throw new TranslateError("AUTH_ERROR", code);
-        case "Account.Arrearage":
-        case "Account.Arrearage": // todo docs is not valid
-          throw new TranslateError("USEAGE_LIMIT", code);
-        default:
-          throw new TranslateError("UNKNOWN", code);
-      }
+    if (!res || !res.data) {
+      throw new TranslateError("NETWORK_ERROR");
     }
 
     return {
