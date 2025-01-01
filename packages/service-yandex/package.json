@@ -1,11 +1,11 @@
 {
-  "name": "@opentranslate2/baidu",
+  "name": "@opentranslate2/yandex",
   "private": false,
   "publishConfig": {
     "access": "public"
   },
   "version": "1.4.21",
-  "description": "Baidu translator with OpenTranslate API.",
+  "description": "Yandex translator with OpenTranslate API.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -18,7 +18,7 @@
     "translator"
   ],
   "repository": "OpenTranslate/OpenTranslate",
-  "homepage": "https://github.com/allentown521/OpenTranslate/tree/master/packages/service-baidu",
+  "homepage": "https://github.com/allentown521/OpenTranslate/tree/master/packages/service-yandex",
   "bugs": "https://github.com/allentown521/opentranslate/issues/",
   "author": "OpenTranslate",
   "license": "MIT",

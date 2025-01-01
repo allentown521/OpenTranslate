@@ -80,7 +80,7 @@ export abstract class Translator<Config extends {} = {}> {
   /**
    * 如果翻译源提供了单独的检测语言的功能，请实现此接口
    */
-  async detect(text: string): Promise<Language> {
+  async detect(text: string, config?: Config): Promise<Language> {
     return detectLang(text);
   }
 

@@ -1,5 +1,5 @@
 // eslint-disable-next-line @typescript-eslint/no-use-before-define
-export type Language = (typeof languages)[number];
+export type Language = typeof languages[number];
 
 export const languages = [
   "af",
@@ -119,5 +119,7 @@ export const languages = [
   "yue",
   "zh-CN",
   "zh-TW",
-  "zu"
+  "zu",
+  "zh",
+  ""
 ] as const;
