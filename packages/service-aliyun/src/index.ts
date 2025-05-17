@@ -138,7 +138,7 @@ export class Aliyun extends Translator<AliyunConfig> {
       Scene: "general",
       SourceLanguage: Aliyun.langMap.get(from) || "",
       TargetLanguage: Aliyun.langMap.get(to) || "",
-      SourceText: text
+      SourceText: encodeURIComponent(text) // text
     };
 
     // 计算签名
