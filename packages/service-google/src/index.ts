@@ -5,7 +5,6 @@ import {
 } from "@opentranslate2/translator";
 import { getTK, fetchScheduled } from "./api";
 import qs from "qs";
-
 const langMap: [Language, string][] = [
   ["auto", "auto"],
   ["zh-CN", "zh-CN"],
@@ -126,6 +125,10 @@ export interface GoogleConfig {
   concurrent: boolean;
   /** Only request API when others fail */
   apiAsFallback: boolean;
+  /** use lang param direct */
+  useLangDirect?: boolean;
+  /** custom endpoint */
+  customEndpoint?: string;
 }
 
 export class Google extends Translator<GoogleConfig> {
@@ -283,10 +286,11 @@ export class Google extends Translator<GoogleConfig> {
         tk1: number;
         tk2: number;
       };
-    }
+    },
+    config?: GoogleConfig
   ): Promise<string | null> {
     let tld = "com";
-    let base = "https://translate.google.com";
+    let base = config?.customEndpoint ?? "https://translate.google.com";
 
     if (meta && meta.base) {
       const tldMatch = /\.(\w+)$/.exec(meta.base);
@@ -300,7 +304,7 @@ export class Google extends Translator<GoogleConfig> {
       `${base}/translate_tts?ie=UTF-8&total=1&idx=0&client=t&` +
       qs.stringify({
         q: text,
-        tl: Google.langMapReverse.get(lang) || "en",
+        tl: config?.useLangDirect ? lang : Google.langMapReverse.get(lang) || "en",
         tk: await getTK(text, tld)
       })
     );

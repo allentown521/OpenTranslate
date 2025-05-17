@@ -23,7 +23,7 @@
   "author": "OpenTranslate",
   "license": "MIT",
   "dependencies": {
-    "@opentranslate2/translator": "^1.4.9",
+    "@opentranslate2/translator": "^1.4.10",
     "@types/md5": "^2.1.33",
     "@types/qs": "^6.5.3",
     "md5": "^2.2.1",

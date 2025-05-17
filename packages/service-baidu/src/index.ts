@@ -43,6 +43,8 @@ export interface BaiduConfig {
   placeholder?: string;
   appid: string;
   key: string;
+  /** use lang param direct */
+  useLangDirect?: boolean;
 }
 
 type BaiduTranslateResult = {
@@ -144,9 +146,9 @@ export class Baidu extends Translator<BaiduConfig> {
     return [...Baidu.langMap.keys()];
   }
 
-  async textToSpeech(text: string, lang: Language): Promise<string> {
+  async textToSpeech(text: string, lang: Language, config?: BaiduConfig): Promise<string> {
     return `https://fanyi.baidu.com/gettts?${qs.stringify({
-      lan: Baidu.langMap.get(lang !== "auto" ? lang : "zh-CN") || "zh",
+      lan: config?.useLangDirect ? lang : Baidu.langMap.get(lang !== "auto" ? lang : "zh-CN") || "zh",
       text,
       spd: 5
     })}`;
