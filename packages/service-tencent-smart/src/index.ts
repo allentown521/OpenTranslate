@@ -30,17 +30,17 @@ const langMap: [Language, string][] = [
   ["vi", "vi"]
 ];
 
-export interface TecentSmartConfig {
+export interface TencentSmartConfig {
   useLangDirect?: boolean;
 }
 
-type TecentSmartTranslateResult = {
+type TencentSmartTranslateResult = {
   auto_translation: Array<string>;
   src_lang: Language;
   tgt_lang: Language;
 };
 
-export class TecentSmart extends Translator<TecentSmartConfig> {
+export class TencentSmart extends Translator<TencentSmartConfig> {
   readonly name = "tencent-smart";
 
   readonly endpoint = "https://transmart.qq.com/api/imt";
@@ -49,9 +49,9 @@ export class TecentSmart extends Translator<TecentSmartConfig> {
     text: string,
     from: Language,
     to: Language,
-    config: TecentSmartConfig
+    config: TencentSmartConfig
   ): Promise<TranslateQueryResult> {
-    type TecentSmartTranslateError = {
+    type TencentSmartTranslateError = {
       error_code: "54001" | string;
       error_msg: "Invalid Sign" | string;
     };
@@ -59,7 +59,7 @@ export class TecentSmart extends Translator<TecentSmartConfig> {
     const salt = Date.now();
     const { endpoint } = this;
 
-    const res = await this.request<TecentSmartTranslateResult>({
+    const res = await this.request<TencentSmartTranslateResult>({
       url: endpoint,
       headers: {
         "Content-Type": "application/json",
@@ -77,14 +77,14 @@ export class TecentSmart extends Translator<TecentSmartConfig> {
         model_category: "normal",
         source: {
           text_list: [text],
-          lang: TecentSmart.langMap.get(from) || "auto"
+          lang: TencentSmart.langMap.get(from) || "auto"
         },
         target: {
-          lang: TecentSmart.langMap.get(to) || "auto"
+          lang: TencentSmart.langMap.get(to) || "auto"
         }
       })
     }).catch(e => {
-      console.error(new Error(`[TecentSmart service]${e}`));
+      console.error(new Error(`[TencentSmart service]${e}`));
       throw e;
     });
 
@@ -93,8 +93,8 @@ export class TecentSmart extends Translator<TecentSmartConfig> {
     const {
       auto_translation: transResult,
       src_lang: langDetected
-    } = data as TecentSmartTranslateResult;
-    const detectedFrom = TecentSmart.langMapReverse.get(
+    } = data as TencentSmartTranslateResult;
+    const detectedFrom = TencentSmart.langMapReverse.get(
       langDetected
     ) as Language;
 
@@ -120,10 +120,10 @@ export class TecentSmart extends Translator<TecentSmartConfig> {
   );
 
   getSupportLanguages(): Language[] {
-    return [...TecentSmart.langMap.keys()];
+    return [...TencentSmart.langMap.keys()];
   }
 
 
 }
 
-export default TecentSmart;
+export default TencentSmart;
