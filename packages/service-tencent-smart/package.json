@@ -4,7 +4,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "version": "1.4.21",
+  "version": "1.4.22",
   "description": "Tencent smart translator with OpenTranslate API.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

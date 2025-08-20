@@ -61,6 +61,7 @@ export class TencentSmart extends Translator<TencentSmartConfig> {
 
     const res = await this.request<TencentSmartTranslateResult>({
       url: endpoint,
+      method: "POST",
       headers: {
         "Content-Type": "application/json",
         "user-agent":
