@@ -68,7 +68,7 @@ export class TencentSmart extends Translator<TencentSmartConfig> {
           "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36",
         referer: "https://transmart.qq.com/zh-CN/index"
       },
-      data: qs.stringify({
+      data: {
         header: {
           fn: "auto_translation",
           client_key:
@@ -83,7 +83,7 @@ export class TencentSmart extends Translator<TencentSmartConfig> {
         target: {
           lang: TencentSmart.langMap.get(to) || "auto"
         }
-      })
+      }
     }).catch(e => {
       console.error(new Error(`[TencentSmart service]${e}`));
       throw e;
