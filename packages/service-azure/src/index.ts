@@ -93,20 +93,42 @@ export class Azure extends Translator<AzureConfig> {
   }
 
   async useToken(): Promise<void> {
-    // 查询内存缓存
     const now = Date.now();
-    if (!this.token || !(this.expiration * 1000 > now + 1000)) {
-      const tokenJson = await this.request({
-        url: this.token_url,
-        method: "GET",
-        headers: {
-          "User-Agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36 Edg/113.0.1774.42"
-        },
-        responseType: "text"
+    const AUTH_KEY = "azure-token";
+    if (this.env === "ext") {
+      // query from storage
+      const val = await browser.storage.local.get([AUTH_KEY]);
+      const tokenObj = val[AUTH_KEY];
+      this.token = tokenObj?.token;
+      this.expiration = tokenObj?.expiration;
+      if (this.token && this.expiration * 1000 > now + 1000) {
+        return;
+      }
+    } else {
+      // query from memory
+      if (this.token && this.expiration * 1000 > now + 1000) {
+        return;
+      }
+    }
+
+    const tokenJson = await this.request({
+      url: this.token_url,
+      method: "GET",
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36 Edg/113.0.1774.42"
+      },
+      responseType: "text"
+    });
+    this.token = tokenJson.data as string;
+    this.expiration = this.parseMSToken(this.token);
+    if (this.env === "ext") {
+      await browser.storage.local.set({
+        [AUTH_KEY]: JSON.stringify({
+          token: this.token,
+          expiration: this.expiration
+        })
       });
-      this.token = tokenJson.data as string;
-      this.expiration = this.parseMSToken(this.token);
     }
   }
 
@@ -230,5 +252,15 @@ export class Azure extends Translator<AzureConfig> {
     }
   }
 }
+
+function _browser() {
+  try {
+    return require("webextension-polyfill");
+  } catch (err) {
+    console.log("Error loading webextension-polyfill", err);
+  }
+}
+
+const browser = _browser();
 
 export default Azure;
