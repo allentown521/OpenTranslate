@@ -271,7 +271,7 @@ export class Google extends Translator<GoogleConfig> {
 
   async detect(text: string): Promise<Language> {
     try {
-      return (await this.translate(text, "auto", "zh-CN")).from;
+      return Google.langMapReverse.get((await this.translate(text, "auto", "zh-CN")).from) as Language;
     } catch (e) {
       return "auto";
     }

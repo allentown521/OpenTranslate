@@ -54,7 +54,10 @@ type BaiduTranslateResult = {
     dst: string;
     src: string;
   }>;
-  lan?: Language;
+};
+
+type BaiduDetectResult = {
+  lan: Language;
 };
 
 export class Baidu extends Translator<BaiduConfig> {
@@ -156,18 +159,18 @@ export class Baidu extends Translator<BaiduConfig> {
 
   async detect(text: string, config?: BaiduConfig): Promise<Language> {
     try {
-      let res = await await this.request<BaiduTranslateResult>( {
+      const res = await this.request<BaiduDetectResult>({
         url: "https://fanyi.baidu.com/langdetect",
         method: "POST",
         headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
+          'Content-Type': 'application/x-www-form-urlencoded',
         },
         data: qs.stringify({
           query: text
         })
       });
-      let result = res.data;
-      return result.lan as Language;
+      const result = res.data;
+      return Baidu.langMapReverse.get(result.lan) as Language;
     } catch (e) {
       return "en";
     }

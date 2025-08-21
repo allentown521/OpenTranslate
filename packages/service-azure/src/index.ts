@@ -5,7 +5,7 @@ import {
   TranslateQueryResult,
   TranslateError
 } from "@opentranslate2/translator";
-import { Base64 } from 'js-base64';
+import { Base64 } from "js-base64";
 
 type AzureTranslateResult = [
   {
@@ -17,6 +17,12 @@ type AzureTranslateResult = [
       language: string;
       score: number;
     };
+  }
+];
+
+type AzureDetectResult = [
+  {
+    language: string;
   }
 ];
 
@@ -62,7 +68,8 @@ export class Azure extends Translator<AzureConfig> {
   readonly name = "azure";
   token = "";
   expiration = 0;
-
+  // 通过抓包Microsoft Edge浏览器提供的翻译服务拿到
+  token_url = "https://edge.microsoft.com/translate/auth";
   /** Translator lang to custom lang */
   private static readonly langMap = new Map(langMap);
 
@@ -85,6 +92,24 @@ export class Azure extends Translator<AzureConfig> {
     return 0;
   }
 
+  async useToken(): Promise<void> {
+    // 查询内存缓存
+    const now = Date.now();
+    if (!this.token || !(this.expiration * 1000 > now + 1000)) {
+      const tokenJson = await this.request({
+        url: this.token_url,
+        method: "GET",
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36 Edg/113.0.1774.42"
+        },
+        responseType: "text"
+      });
+      this.token = tokenJson.data as string;
+      this.expiration = this.parseMSToken(this.token);
+    }
+  }
+
   protected async query(
     text: string,
     from: Language,
@@ -93,24 +118,7 @@ export class Azure extends Translator<AzureConfig> {
   ): Promise<TranslateQueryResult> {
     const source = text.split(/\n+/);
     if (config.free) {
-      // 通过抓包Microsoft Edge浏览器提供的翻译服务拿到
-      const token_url = "https://edge.microsoft.com/translate/auth";
-
-      // 查询内存缓存
-      const now = Date.now();
-      if (!this.token || !(this.expiration * 1000 > now + 1000)) {
-        const tokenJson = await this.request({
-          url: token_url,
-          method: "GET",
-          headers: {
-            "User-Agent":
-              "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36 Edg/113.0.1774.42"
-          },
-          responseType: "text"
-        });
-        this.token = tokenJson.data as string;
-        this.expiration = this.parseMSToken(this.token);
-      }
+      await this.useToken();
     }
 
     // referer: pot translation app
@@ -196,6 +204,30 @@ export class Azure extends Translator<AzureConfig> {
         paragraphs: result.map(translation => translation.translations[0].text)
       }
     };
+  }
+
+  async detect(text: string, config?: AzureConfig): Promise<Language> {
+    try {
+      await this.useToken();
+      const res = await this.request<AzureDetectResult>({
+        url:
+          "https://api-edge.cognitive.microsofttranslator.com/detect?api-version=3.0",
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${this.token}`
+        },
+        data: [
+          {
+            Text: text
+          }
+        ]
+      });
+      const result = res.data;
+      return Azure.langMapReverse.get(result[0].language) as Language;
+    } catch (e) {
+      return "en";
+    }
   }
 }
 

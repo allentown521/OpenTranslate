@@ -60,7 +60,6 @@ export class Baidu extends Translator<BaiduConfig> {
 
   readonly endpoint = "https://api.fanyi.baidu.com/api/trans/vip/translate";
 
-
   protected async query(
     text: string,
     from: Language,
@@ -71,7 +70,6 @@ export class Baidu extends Translator<BaiduConfig> {
       error_code: "54001" | string;
       error_msg: "Invalid Sign" | string;
     };
-
 
     const salt = Date.now();
     const { endpoint } = this;
@@ -154,17 +152,17 @@ export class Baidu extends Translator<BaiduConfig> {
 
   async detect(text: string, config?: BaiduConfig): Promise<Language> {
     try {
-      let res = await await this.request<BaiduTranslateResult>( {
+      const res = await this.request<BaiduTranslateResult>({
         url: "https://fanyi.baidu.com/langdetect",
         method: "POST",
         headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
+          "Content-Type": "application/x-www-form-urlencoded"
         },
         data: qs.stringify({
           query: text
         })
       });
-      let result = res.data;
+      const result = res.data;
       return result.lan as Language;
     } catch (e) {
       return "en";

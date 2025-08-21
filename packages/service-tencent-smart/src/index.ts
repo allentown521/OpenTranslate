@@ -1,11 +1,8 @@
 import {
   Language,
   Translator,
-  TranslateError,
   TranslateQueryResult
 } from "@opentranslate2/translator";
-import md5 from "md5";
-import qs from "qs";
 
 const langMap: [Language, string][] = [
   ["auto", "auto"],
@@ -38,6 +35,10 @@ type TencentSmartTranslateResult = {
   auto_translation: Array<string>;
   src_lang: Language;
   tgt_lang: Language;
+};
+
+type TencentSmartDetectResult = {
+  language: string;
 };
 
 export class TencentSmart extends Translator<TencentSmartConfig> {
@@ -104,10 +105,10 @@ export class TencentSmart extends Translator<TencentSmartConfig> {
       from: detectedFrom,
       to,
       origin: {
-        paragraphs: text.split(/\n+/),
+        paragraphs: text.split(/\n+/)
       },
       trans: {
-        paragraphs: transResult,
+        paragraphs: transResult
       }
     };
   }
@@ -124,7 +125,27 @@ export class TencentSmart extends Translator<TencentSmartConfig> {
     return [...TencentSmart.langMap.keys()];
   }
 
-
+  async detect(text: string, config?: TencentSmartConfig): Promise<Language> {
+    try {
+      const res = await this.request<TencentSmartDetectResult>({
+        url: this.endpoint,
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        data: {
+          header: {
+            fn: "text_analysis"
+          },
+          text
+        }
+      });
+      const result = res.data;
+      return TencentSmart.langMapReverse.get(result.language) as Language;
+    } catch (e) {
+      return "en";
+    }
+  }
 }
 
 export default TencentSmart;
