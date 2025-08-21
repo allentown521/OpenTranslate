@@ -5,6 +5,7 @@ import {
   TranslateQueryResult,
   TranslateError
 } from "@opentranslate2/translator";
+import { Base64 } from 'js-base64';
 
 type AzureTranslateResult = [
   {
@@ -59,6 +60,8 @@ export interface AzureConfig {
 
 export class Azure extends Translator<AzureConfig> {
   readonly name = "azure";
+  token = "";
+  expiration = 0;
 
   /** Translator lang to custom lang */
   private static readonly langMap = new Map(langMap);
@@ -72,6 +75,16 @@ export class Azure extends Translator<AzureConfig> {
     return [...Azure.langMap.keys()];
   }
 
+  parseMSToken(token: string): number {
+    try {
+      const expStr = token.split(".")[1];
+      return JSON.parse(Base64.decode(expStr)).exp;
+    } catch (err) {
+      console.error("Error parsing token", err);
+    }
+    return 0;
+  }
+
   protected async query(
     text: string,
     from: Language,
@@ -79,20 +92,25 @@ export class Azure extends Translator<AzureConfig> {
     config: AzureConfig
   ): Promise<TranslateQueryResult> {
     const source = text.split(/\n+/);
-    let token = { data: "" };
     if (config.free) {
       // 通过抓包Microsoft Edge浏览器提供的翻译服务拿到
       const token_url = "https://edge.microsoft.com/translate/auth";
 
-      token = await this.request({
-        url: token_url,
-        method: "GET",
-        headers: {
-          "User-Agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36 Edg/113.0.1774.42"
-        },
-        responseType: "text"
-      });
+      // 查询内存缓存
+      const now = Date.now();
+      if (!this.token || !(this.expiration * 1000 > now + 1000)) {
+        const tokenJson = await this.request({
+          url: token_url,
+          method: "GET",
+          headers: {
+            "User-Agent":
+              "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36 Edg/113.0.1774.42"
+          },
+          responseType: "text"
+        });
+        this.token = tokenJson.data as string;
+        this.expiration = this.parseMSToken(this.token);
+      }
     }
 
     // referer: pot translation app
@@ -101,7 +119,7 @@ export class Azure extends Translator<AzureConfig> {
       accept: "*/*",
       "accept-language":
         "zh-TW,zh;q=0.9,ja;q=0.8,zh-CN;q=0.7,en-US;q=0.6,en;q=0.5",
-      authorization: "Bearer " + token.data,
+      authorization: `Bearer ${this.token}`,
       "cache-control": "no-cache",
       pragma: "no-cache",
       "sec-ch-ua":
