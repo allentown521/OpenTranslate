@@ -98,7 +98,7 @@ export class Azure extends Translator<AzureConfig> {
     if (this.env === "ext") {
       // query from storage
       const val = await browser.storage.local.get([AUTH_KEY]);
-      const tokenObj = val[AUTH_KEY];
+      const tokenObj = val[AUTH_KEY] && JSON.parse(val[AUTH_KEY]);
       this.token = tokenObj?.token;
       this.expiration = tokenObj?.expiration;
       if (this.token && this.expiration * 1000 > now + 1000) {
