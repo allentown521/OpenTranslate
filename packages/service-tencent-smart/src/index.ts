@@ -135,7 +135,9 @@ export class TencentSmart extends Translator<TencentSmartConfig> {
         },
         data: {
           header: {
-            fn: "text_analysis"
+            fn: "text_analysis",
+            client_key:
+              "browser-chrome-110.0.0-Mac OS-df4bd4c5-a65d-44b2-a40f-42f34f3535f2-1677486696487"
           },
           text
         }
