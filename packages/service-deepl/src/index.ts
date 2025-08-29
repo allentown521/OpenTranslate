@@ -45,6 +45,8 @@ export interface DeeplConfig {
    * depending on you subscription (https://api.deepl.com/v2 for Pro, https://api-free.deepl.com/v2 for Free).
    */
   base_url?: string;
+  // custom route name
+  routeName?: string;
   /**
    * Sets whether the translation engine should first split the input into sentences.
    * This is enabled by default. Possible values are:
@@ -132,14 +134,15 @@ export class Deepl extends Translator<DeeplConfig> {
     const isOfficial = finalBaseUrl.includes("deepl.com") && !isWeb;
     let response;
     if (!isWeb) {
+      // official or deeplx
       response = await this.request<DeeplResult>({
-        url: finalBaseUrl + "/translate",
+        url: finalBaseUrl + config.routeName || "/translate",
         method: "post",
         data: {
           ...config,
           text: isOfficial ? [text] : text,
           ["source_lang"]: Deepl.fromLangMap.get(from),
-          ["target_lang"]: Deepl.toLangMap.get(to)
+          ["target_lang"]: isOfficial ? Deepl.toLangMap.get(to) : (Deepl.toLangMap.get(to) || "").slice(0, 2) // todo: deeplx not support zh-TW.
         },
         headers: {
           Authorization: `DeepL-Auth-Key ${config.auth_key}`
