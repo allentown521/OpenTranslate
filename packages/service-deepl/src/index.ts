@@ -136,7 +136,7 @@ export class Deepl extends Translator<DeeplConfig> {
     if (!isWeb) {
       // official or deeplx
       response = await this.request<DeeplResult>({
-        url: finalBaseUrl + config.routeName || "/translate",
+        url: finalBaseUrl + (config.routeName || "/translate"),
         method: "post",
         data: {
           ...config,
