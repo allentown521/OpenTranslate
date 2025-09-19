@@ -23,7 +23,7 @@
   "author": "OpenTranslate",
   "license": "MIT",
   "dependencies": {
-    "@opentranslate2/translator": "^1.4.8",
+    "@opentranslate2/translator": "^1.4.11",
     "js-sha256": "^0.9.0"
   }
 }

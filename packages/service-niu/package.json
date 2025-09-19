@@ -28,7 +28,7 @@
     "url": "https://github.com/allentown521/OpenTranslate/issues"
   },
   "dependencies": {
-    "@opentranslate2/translator": "^1.4.8",
+    "@opentranslate2/translator": "^1.4.11",
     "@types/qs": "^6.5.3",
     "qs": "^6.8.0"
   }
