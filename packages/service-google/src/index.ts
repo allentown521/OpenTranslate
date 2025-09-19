@@ -273,7 +273,7 @@ export class Google extends Translator<GoogleConfig> {
     try {
       return Google.langMapReverse.get((await this.translate(text, "auto", "zh-CN")).from) as Language;
     } catch (e) {
-      return "auto";
+      return super.detect(text);
     }
   }
 

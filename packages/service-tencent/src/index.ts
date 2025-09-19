@@ -239,26 +239,33 @@ export class Tencent extends Translator<TencentConfig> {
   }
 
   async detect(text: string): Promise<Language> {
-    const RequestPayload: string = JSON.stringify({
-      ProjectId: 0,
-      Text: text
-    });
+    try {
+      const RequestPayload: string = JSON.stringify({
+        ProjectId: 0,
+        Text: text
+      });
 
-    const { data } = await this.signedRequest<{
-      Response: {
-        Lang: string;
-        RequestId: string;
-      };
-    }>({
-      secretId: this.config.secretId,
-      secretKey: this.config.secretKey,
-      action: "LanguageDetect",
-      payload: RequestPayload,
-      service: "tmt",
-      version: "2018-03-21"
-    });
-
-    return Tencent.langMapReverse.get(data.Response.Lang) || "auto";
+      const { data } = await this.signedRequest<{
+        Response: {
+          Lang: string;
+          RequestId: string;
+        };
+      }>({
+        secretId: this.config.secretId,
+        secretKey: this.config.secretKey,
+        action: "LanguageDetect",
+        payload: RequestPayload,
+        service: "tmt",
+        version: "2018-03-21"
+      });
+      if (data.Response.Lang) {
+        return Tencent.langMapReverse.get(data.Response.Lang) || "auto";
+      } else {
+        return super.detect(text);
+      }
+    } catch (e) {
+      return super.detect(text);
+    }
   }
 
   async textToSpeech(text: string, lang: Language): Promise<string | null> {

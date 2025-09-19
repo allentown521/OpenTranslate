@@ -248,7 +248,7 @@ export class Azure extends Translator<AzureConfig> {
       const result = res.data;
       return Azure.langMapReverse.get(result[0].language) as Language;
     } catch (e) {
-      return "en";
+      return super.detect(text);
     }
   }
 }

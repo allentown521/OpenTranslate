@@ -172,7 +172,7 @@ export class Baidu extends Translator<BaiduConfig> {
       const result = res.data;
       return Baidu.langMapReverse.get(result.lan) as Language;
     } catch (e) {
-      return "en";
+      return super.detect(text);
     }
   }
 }

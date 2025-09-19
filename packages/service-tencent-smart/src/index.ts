@@ -145,7 +145,7 @@ export class TencentSmart extends Translator<TencentSmartConfig> {
       const result = res.data;
       return TencentSmart.langMapReverse.get(result.language) as Language;
     } catch (e) {
-      return "en";
+      return super.detect(text);
     }
   }
 }
