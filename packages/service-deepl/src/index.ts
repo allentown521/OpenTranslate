@@ -142,7 +142,9 @@ export class Deepl extends Translator<DeeplConfig> {
           ...config,
           text: isOfficial ? [text] : text,
           ["source_lang"]: Deepl.fromLangMap.get(from),
-          ["target_lang"]: isOfficial ? Deepl.toLangMap.get(to) : (Deepl.toLangMap.get(to) || "").slice(0, 2) // todo: deeplx not support zh-TW.
+          ["target_lang"]: isOfficial
+            ? Deepl.toLangMap.get(to)
+            : (Deepl.toLangMap.get(to) || "").slice(0, 2) // todo: deeplx not support zh-TW.
         },
         headers: {
           Authorization: `DeepL-Auth-Key ${config.auth_key}`
@@ -198,20 +200,36 @@ export class Deepl extends Translator<DeeplConfig> {
 
       let bodyStr = JSON.stringify(body);
 
-      // https://github.com/you-apps/TranslateYou/blob/44c69d2783304460a5b0f5bdb949d9089893abbe/app/src/main/java/com/bnyro/translate/api/deepl/DeeplEngine.kt#L124
+      // https://github.com/you-apps/TranslateYou/blob/06f69dafd5e25f1763888c72ade096f69851734a/app/src/main/java/com/bnyro/translate/api/deepl/DeeplBrowserEngine.kt#L115
       // The random ID determines the spacing to use, do NOT change it
       // This is how the client side of the web service works and the server-side
       // expects the same, otherwise you will get soft-banned
-      if ((rand + 5) % 29 === 0 || (rand + 3) % 13 === 0) {
+      if ((rand + 3) % 13 === 0 || (rand + 5) % 29 === 0) {
         bodyStr = bodyStr.replace('"method":"', '"method" : "');
       } else {
         bodyStr = bodyStr.replace('"method":"', '"method": "');
       }
 
+      const WEB_CHROME_EXTENSION_VER = "1.18.0";
+      const WEB_CHROME_USER_AGENT =
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
+
       response = await this.request<DeeplResult>({
-        url: finalBaseUrl,
+        url: `${finalBaseUrl}/?client=chrome-extension,${WEB_CHROME_EXTENSION_VER}`,
         method: "post",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Accept": "*/*",
+          "Accept-Language": "en-US,en;q=0.5",
+          "Authorization": "none",
+          "Host": "keep-alive",
+          "Origin": "chrome-extension://cofdbpoegempjloogbagkncekinflcnj",
+          "Referer": "https://www.deepl.com/",
+          "Sec-Fetch-Dest": "empty",
+          "Sec-Fetch-Mode": "cors",
+          "Sec-Fetch-Site": "none",
+          "Content-Type": "application/json; charset=utf-8",
+          "User-Agent": `DeepLBrowserExtension/${WEB_CHROME_EXTENSION_VER} ${WEB_CHROME_USER_AGENT}`
+        },
         data: bodyStr
       }).catch(error => {
         // 处理错误
