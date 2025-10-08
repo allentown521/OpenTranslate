@@ -4,8 +4,6 @@ import {
   TranslateQueryResult,
   TranslateError
 } from "@opentranslate2/translator";
-import qs from "qs";
-import axios from "axios";
 
 const fromLangMap: [Language, string][] = [
   ["auto", "auto"],
@@ -117,10 +115,36 @@ export class Deepl extends Translator<DeeplConfig> {
   private static readonly fromLangMap = new Map(fromLangMap);
   private static readonly toLangMap = new Map(toLangMap);
 
+  private static readonly defaultTransAction = "translate";
+
   /** Custom lang to translator lang */
   private static readonly fromLangMapReverse = new Map(
     fromLangMap.map(([translatorLang, lang]) => [lang, translatorLang])
   );
+
+  /**
+   * Gets the final translate URL based on the config.
+   * If the config has a base_url, it will be used, otherwise the default base_url will be used.
+   * If the config has a routeName, it will be used to construct the final URL.
+   * If the finalBaseUrl includes the defaultTransAction, the final URL will be the finalBaseUrl.
+   * Otherwise, the final URL will be the finalBaseUrl with the defaultTransAction appended to it.
+   * @param config The config to get the final translate URL from.
+   * @returns The final translate URL.
+   */
+  getFinalTranslateUrl(config: DeeplConfig): string {
+    const defaultBaseUrl = "https://api.deepl.com/v2";
+    const finalBaseUrl = (config.base_url || defaultBaseUrl).replace(/\/$/, ""); // remove trailing slash in the end
+    let finalUrl;
+    if (config.routeName) {
+      finalUrl = `${finalBaseUrl}/${config.routeName}`;
+    } else if (finalBaseUrl.includes(`/${Deepl.defaultTransAction}`)) {
+      // full url with action
+      finalUrl = finalBaseUrl;
+    } else {
+      finalUrl = `${finalBaseUrl}/${Deepl.defaultTransAction}`;
+    }
+    return finalUrl;
+  }
 
   protected async query(
     text: string,
@@ -128,15 +152,20 @@ export class Deepl extends Translator<DeeplConfig> {
     to: Language,
     config: DeeplConfig
   ): Promise<TranslateQueryResult> {
-    const defaultBaseUrl = "https://api.deepl.com/v2";
-    const finalBaseUrl = (config.base_url || defaultBaseUrl).replace(/\/$/, ""); // remove trailing slash in the end
-    const isWeb = finalBaseUrl.includes("jsonrpc");
-    const isOfficial = finalBaseUrl.includes("deepl.com") && !isWeb;
+    const finalTranslateUrl = this.getFinalTranslateUrl(config);
+    const isWeb = finalTranslateUrl.includes("jsonrpc");
+    const isOfficial = finalTranslateUrl.includes("deepl.com") && !isWeb;
     let response;
     if (!isWeb) {
       // official or deeplx
+      const headers: Record<string, string> = {};
+      if (config.auth_key) {
+        // only offical support need authorization
+        headers.Authorization = `DeepL-Auth-Key ${config.auth_key}`;
+      }
+      
       response = await this.request<DeeplResult>({
-        url: finalBaseUrl + (config.routeName || "/translate"),
+        url: finalTranslateUrl,
         method: "post",
         data: {
           ...config,
@@ -146,9 +175,7 @@ export class Deepl extends Translator<DeeplConfig> {
             ? Deepl.toLangMap.get(to)
             : (Deepl.toLangMap.get(to) || "").slice(0, 2) // todo: deeplx not support zh-TW.
         },
-        headers: {
-          Authorization: `DeepL-Auth-Key ${config.auth_key}`
-        }
+        headers
       }).catch(error => {
         // https://developers.deepl.com/docs/api-reference/translate/openapi-spec-for-text-translation
         if (error && error.response && error.response.status) {
@@ -215,15 +242,15 @@ export class Deepl extends Translator<DeeplConfig> {
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
 
       response = await this.request<DeeplResult>({
-        url: `${finalBaseUrl}/?client=chrome-extension,${WEB_CHROME_EXTENSION_VER}`,
+        url: `${finalTranslateUrl}/?client=chrome-extension,${WEB_CHROME_EXTENSION_VER}`,
         method: "post",
         headers: {
-          "Accept": "*/*",
+          Accept: "*/*",
           "Accept-Language": "en-US,en;q=0.5",
-          "Authorization": "none",
-          "Host": "keep-alive",
-          "Origin": "chrome-extension://cofdbpoegempjloogbagkncekinflcnj",
-          "Referer": "https://www.deepl.com/",
+          Authorization: "none",
+          Host: "keep-alive",
+          Origin: "chrome-extension://cofdbpoegempjloogbagkncekinflcnj",
+          Referer: "https://www.deepl.com/",
           "Sec-Fetch-Dest": "empty",
           "Sec-Fetch-Mode": "cors",
           "Sec-Fetch-Site": "none",

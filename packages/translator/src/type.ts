@@ -1,5 +1,5 @@
 import { Language } from "@opentranslate2/languages";
-import { AxiosInstance } from "axios";
+import { AxiosInstance, AxiosRequestConfig, AxiosPromise } from "axios";
 
 export type Languages = Array<Language>;
 
@@ -9,6 +9,7 @@ export interface TranslatorInit<Config extends {}> {
   env?: TranslatorEnv;
   axios?: AxiosInstance;
   config?: Config;
+  useCustomExecutor?: <R = {}>(config: AxiosRequestConfig) => AxiosPromise<R>;
 }
 
 export type TranslateErrorType =

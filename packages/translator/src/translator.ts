@@ -24,6 +24,8 @@ export abstract class Translator<Config extends {} = {}> {
    */
   abstract readonly name: string;
 
+  useCustomExecutor?: <R = {}>(config: AxiosRequestConfig) => AxiosPromise<R>;
+
   /**
    * 可选的axios实例
    */
@@ -31,6 +33,7 @@ export abstract class Translator<Config extends {} = {}> {
     this.env = init.env || "node";
     this.axios = init.axios || Axios;
     this.config = init.config || ({} as Config);
+    this.useCustomExecutor = init.useCustomExecutor;
   }
 
   /**
@@ -74,7 +77,9 @@ export abstract class Translator<Config extends {} = {}> {
   ): Promise<TranslateQueryResult>;
 
   protected request<R = {}>(config: AxiosRequestConfig): AxiosPromise<R> {
-    return this.axios(config);
+    return this.useCustomExecutor
+      ? this.useCustomExecutor(config)
+      : this.axios(config);
   }
 
   /**
