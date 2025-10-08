@@ -123,7 +123,7 @@ export class Deepl extends Translator<DeeplConfig> {
   );
 
   /**
-   * Gets the final translate URL based on the config.
+   * Gets the api (deeplx or deepl official api) translate URL based on the config.
    * If the config has a base_url, it will be used, otherwise the default base_url will be used.
    * If the config has a routeName, it will be used to construct the final URL.
    * If the finalBaseUrl includes the defaultTransAction, the final URL will be the finalBaseUrl.
@@ -131,9 +131,7 @@ export class Deepl extends Translator<DeeplConfig> {
    * @param config The config to get the final translate URL from.
    * @returns The final translate URL.
    */
-  getFinalTranslateUrl(config: DeeplConfig): string {
-    const defaultBaseUrl = "https://api.deepl.com/v2";
-    const finalBaseUrl = (config.base_url || defaultBaseUrl).replace(/\/$/, ""); // remove trailing slash in the end
+  getApiTranslateUrl(finalBaseUrl: string, config: DeeplConfig): string {
     let finalUrl;
     if (config.routeName) {
       finalUrl = `${finalBaseUrl}/${config.routeName}`;
@@ -152,9 +150,10 @@ export class Deepl extends Translator<DeeplConfig> {
     to: Language,
     config: DeeplConfig
   ): Promise<TranslateQueryResult> {
-    const finalTranslateUrl = this.getFinalTranslateUrl(config);
-    const isWeb = finalTranslateUrl.includes("jsonrpc");
-    const isOfficial = finalTranslateUrl.includes("deepl.com") && !isWeb;
+    const defaultBaseUrl = "https://api.deepl.com/v2";
+    const finalBaseUrl = (config.base_url || defaultBaseUrl).replace(/\/$/, ""); // remove trailing slash in the end
+    const isWeb = finalBaseUrl.includes("jsonrpc");
+    const isOfficial = finalBaseUrl.includes("deepl.com") && !isWeb;
     let response;
     if (!isWeb) {
       // official or deeplx
@@ -163,9 +162,9 @@ export class Deepl extends Translator<DeeplConfig> {
         // only offical support need authorization
         headers.Authorization = `DeepL-Auth-Key ${config.auth_key}`;
       }
-      
+
       response = await this.request<DeeplResult>({
-        url: finalTranslateUrl,
+        url: this.getApiTranslateUrl(finalBaseUrl, config),
         method: "post",
         data: {
           ...config,
@@ -237,26 +236,10 @@ export class Deepl extends Translator<DeeplConfig> {
         bodyStr = bodyStr.replace('"method":"', '"method": "');
       }
 
-      const WEB_CHROME_EXTENSION_VER = "1.18.0";
-      const WEB_CHROME_USER_AGENT =
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
-
       response = await this.request<DeeplResult>({
-        url: `${finalTranslateUrl}/?client=chrome-extension,${WEB_CHROME_EXTENSION_VER}`,
+        url: finalBaseUrl,
         method: "post",
-        headers: {
-          Accept: "*/*",
-          "Accept-Language": "en-US,en;q=0.5",
-          Authorization: "none",
-          Host: "keep-alive",
-          Origin: "chrome-extension://cofdbpoegempjloogbagkncekinflcnj",
-          Referer: "https://www.deepl.com/",
-          "Sec-Fetch-Dest": "empty",
-          "Sec-Fetch-Mode": "cors",
-          "Sec-Fetch-Site": "none",
-          "Content-Type": "application/json; charset=utf-8",
-          "User-Agent": `DeepLBrowserExtension/${WEB_CHROME_EXTENSION_VER} ${WEB_CHROME_USER_AGENT}`
-        },
+        headers: { "Content-Type": "application/json" },
         data: bodyStr
       }).catch(error => {
         // 处理错误
