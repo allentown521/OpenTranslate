@@ -129,7 +129,7 @@ export class Deepl extends Translator<DeeplConfig> {
     config: DeeplConfig
   ): Promise<TranslateQueryResult> {
     const defaultBaseUrl = "https://api.deepl.com/v2";
-    const finalBaseUrl = config.base_url || defaultBaseUrl;
+    const finalBaseUrl = (config.base_url || defaultBaseUrl).replace(/\/$/, ""); // remove trailing slash in the end
     const isWeb = finalBaseUrl.includes("jsonrpc");
     const isOfficial = finalBaseUrl.includes("deepl.com") && !isWeb;
     let response;
