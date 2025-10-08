@@ -1,4 +1,4 @@
-import { get } from "google-translate-open-api/dist/token";
+import { get } from "google-translate-open-api2/dist/token";
 
 /**
  * Calculate TK token
